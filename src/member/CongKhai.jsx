@@ -80,8 +80,9 @@ export function LandingPage() {
         <section className="lp-muc">
           <div className="the-zalo">
             <span className="ic">Zalo</span>
-            <div className="gian"><b>{ck?.zalo?.ten_nhom || 'Cộng đồng Affiliate Nón Sơn'}</b><span>Trao đổi kinh nghiệm, cập nhật chương trình mới mỗi ngày.</span></div>
+            <div className="gian"><b>{ck?.zalo?.ten_nhom || 'Cộng đồng Affiliate Nón Sơn'}</b><span>Trao đổi kinh nghiệm, cập nhật chương trình mới mỗi ngày.</span>{ck?.zalo?.qr && <span className="goi-y-qr">Quét mã QR bằng Zalo hoặc bấm nút để vào nhóm.</span>}</div>
             <NutZalo zalo={ck?.zalo} sang />
+            {ck?.zalo?.qr && <img className="qr-zalo" src={ck.zalo.qr} alt="Mã QR nhóm Zalo" loading="lazy" />}
           </div>
         </section>
 

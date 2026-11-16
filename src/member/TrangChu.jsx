@@ -179,6 +179,7 @@ export default function TrangChu() {
             <span className="ic">Zalo</span>
             <div className="gian"><b>{d.zalo?.ten_nhom || 'Nhóm Zalo cộng đồng'}</b><span>Hỏi đáp, chia sẻ kinh nghiệm cùng các thành viên.</span></div>
             {d.zalo?.link ? <a className="btn trang sm" href={d.zalo.link} target="_blank" rel="noreferrer" onClick={() => rpc('fn_su_kien', { p_loai: 'mo_zalo', p_id: null }).catch(() => {})}><Send size={15} />Vào nhóm</a> : <NutZalo zalo={d.zalo} sang />}
+            {d.zalo?.qr && <img className="qr-zalo nho" src={d.zalo.qr} alt="Mã QR nhóm Zalo" loading="lazy" />}
           </div>
         </section>
       </div>
