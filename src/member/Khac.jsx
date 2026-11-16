@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft, Bell, BookOpen, CheckCheck, Download, ExternalLink, FileText, Film, Gift, Image as IcAnh, KeyRound, Link2, LifeBuoy,
   LogOut, Pin, Plus, ScrollText, Search, Send, Trash2, UserRound, Lock, Star, Heart, CalendarDays, Megaphone
 } from 'lucide-react'
-import { Anh, Bao, Btn, Chips, Chon, DongSwitch, Empty, Field, KhungTai, LoiTai, Md, Modal, Nhan, Segment, TextArea, ThanhTienDo, TrangDau, useToast, Sao } from '../components/ui'
+import { Anh, Bao, Btn, Chips, Chon, DongSwitch, Empty, Field, KhungTai, LoiTai, Md, Modal, Nhan, Segment, TextArea, ThanhTienDo, TrangDau, useToast } from '../components/ui'
 import { useAuth } from '../components/auth'
 import { useAsync, useDebounced } from '../lib/hooks'
 import { rpc, linkTai, doiMatKhau } from '../lib/api'

@@ -52,7 +52,6 @@ export default function TrangChu() {
   if (loading && !d) return <KhungTai dong={5} />
   if (error && !d) return <LoiTai loi={error} thuLai={reload} />
   const cs = tv.chi_so || {}
-  const top = (d.top || []).filter((x) => x.nhan_top === nhan)
   const nhanCo = Object.keys(NHAN_TOP).filter((k) => (d.top || []).some((x) => x.nhan_top === k))
   const nhanHien = nhanCo.includes(nhan) ? nhan : nhanCo[0]
   const topHien = (d.top || []).filter((x) => x.nhan_top === nhanHien)
