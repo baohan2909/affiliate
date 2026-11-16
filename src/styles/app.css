@@ -431,25 +431,24 @@ a.kpi:hover, button.kpi:hover { transform: translateY(-2px); box-shadow: var(--s
 /* ===== Nền loang + bóng tròn + tiêu đề 3 dòng — đồng bộ NS TUYỂN DỤNG (không dùng tím: quầng phải đổi sang hồng rượu #A3004F) ===== */
 .nen-loang { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
 /* Quầng sáng bằng radial-gradient nhiều điểm dừng (không dùng filter: blur — Safari iPhone cắt blur thành mảng cứng) */
-.nen-loang::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 100%; pointer-events: none;
+.nen-loang::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 640px; pointer-events: none;
   background:
-    radial-gradient(520px 440px at -6% -8%, rgba(224,21,126,.85) 0%, rgba(224,21,126,.58) 22%, rgba(224,21,126,.27) 45%, rgba(224,21,126,.07) 66%, rgba(224,21,126,0) 82%),
-    radial-gradient(460px 420px at 108% 22%, rgba(163,0,79,.62) 0%, rgba(163,0,79,.4) 25%, rgba(163,0,79,.17) 50%, rgba(163,0,79,.04) 70%, rgba(163,0,79,0) 85%),
-    radial-gradient(380px 300px at 40% 62%, rgba(224,21,126,.16) 0%, rgba(224,21,126,.06) 45%, rgba(224,21,126,0) 75%); }
+    radial-gradient(440px 400px at -10% -6%, rgba(224,21,126,.66) 0%, rgba(224,21,126,.4) 24%, rgba(224,21,126,.15) 48%, rgba(224,21,126,.04) 68%, rgba(224,21,126,0) 82%),
+    radial-gradient(360px 340px at 112% 170px, rgba(163,0,79,.42) 0%, rgba(163,0,79,.22) 30%, rgba(163,0,79,.07) 58%, rgba(163,0,79,0) 82%); }
 .bong-tron { position: absolute; border-radius: 50%; pointer-events: none; }
 .bong-tron.b1 { background: linear-gradient(150deg, rgba(255,255,255,.13) 0%, rgba(255,255,255,.04) 100%); }
 .bong-tron.b2 { background: linear-gradient(150deg, rgba(255,140,192,.24) 0%, rgba(255,140,192,.08) 100%); }
 .nen-loang .b1 { width: 240px; height: 240px; right: -96px; top: -120px; }
-.nen-loang .b2 { width: 120px; height: 120px; right: 112px; top: 40px; background: linear-gradient(150deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.05) 100%); }
+.nen-loang .b2 { width: 120px; height: 120px; right: 94px; top: 35px; background: linear-gradient(150deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.05) 100%); }
 .lp-hero .lp-wrap { position: relative; }
 .bong-cum { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
 .bong-cum .b1 { width: 240px; height: 240px; right: -60px; top: -150px; }
-.bong-cum .b2 { width: 120px; height: 120px; right: 150px; top: 30px; background: linear-gradient(150deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.05) 100%); }
+.bong-cum .b2 { width: 120px; height: 120px; right: 130px; top: 5px; background: linear-gradient(150deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.05) 100%); }
 .lp-nav, .lp-hero-noi { position: relative; z-index: 1; }
 .lp-hero .eyebrow { margin-bottom: 14px; }
 .hero-chu { text-transform: uppercase; font-size: clamp(26px, 7.2vw, 34px); line-height: 1; }
 /* cỡ chữ tính theo bề rộng cột để dòng dài nhất (≈11.5 lần cỡ chữ) luôn nằm trên 1 dòng */
-.lp-hero h1.hero-chu { font-size: clamp(22px, calc((100vw - 44px) / 11.8), 46px); font-weight: 800; letter-spacing: 0; line-height: 1; }
+.lp-hero h1.hero-chu { font-size: clamp(21px, calc((100vw - 52px) / 13.2), 44px); font-weight: 800; letter-spacing: 0; line-height: 1; }
 .lp-hero .hero-chu > span { white-space: nowrap; }
 .hero-chu > span { display: block; }
 .hero-chu .d1 { font-size: .5em; font-weight: 600; letter-spacing: .32em; color: rgba(255,255,255,.62); margin-bottom: .32em; }
@@ -460,27 +459,41 @@ a.kpi:hover, button.kpi:hover { transform: translateY(-2px); box-shadow: var(--s
 @media (min-width: 901px) {
   .nen-loang::before {
     background:
-      radial-gradient(900px 760px at -4% -10%, rgba(224,21,126,.78) 0%, rgba(224,21,126,.52) 22%, rgba(224,21,126,.24) 45%, rgba(224,21,126,.06) 66%, rgba(224,21,126,0) 82%),
-      radial-gradient(760px 700px at 104% 18%, rgba(163,0,79,.5) 0%, rgba(163,0,79,.3) 25%, rgba(163,0,79,.13) 50%, rgba(163,0,79,.03) 70%, rgba(163,0,79,0) 85%),
-      radial-gradient(900px 520px at 38% 112%, rgba(224,21,126,.3) 0%, rgba(224,21,126,.14) 40%, rgba(224,21,126,0) 75%); }
+      radial-gradient(820px 680px at -4% -12%, rgba(224,21,126,.66) 0%, rgba(224,21,126,.42) 22%, rgba(224,21,126,.18) 45%, rgba(224,21,126,.04) 66%, rgba(224,21,126,0) 82%),
+      radial-gradient(640px 600px at 104% 14%, rgba(163,0,79,.34) 0%, rgba(163,0,79,.19) 28%, rgba(163,0,79,.07) 54%, rgba(163,0,79,0) 82%); }
+  .nen-loang::before { height: 100%; }
   .lp-hero-noi { grid-template-columns: minmax(0, 1.4fr) minmax(0, .85fr); gap: 48px; }
   .lp-hero h1.hero-chu { font-size: clamp(34px, calc((100vw - 92px) * .053), 54px); }
   .hero-chu > span { white-space: nowrap; }
   .hero-chu .d1 { font-size: .36em; margin-bottom: .45em; }
   .lp-hero .eyebrow { margin-bottom: 22px; }
   .bong-cum .b1 { width: 300px; height: 300px; right: 300px; top: -150px; }
-  .bong-cum .b2 { width: 150px; height: 150px; right: 560px; top: 70px; background: linear-gradient(150deg, rgba(255,140,192,.24) 0%, rgba(255,140,192,.08) 100%); }
-  .nen-loang .b1 { width: 300px; height: 300px; right: -40px; top: -130px; }
-  .nen-loang .b2 { width: 150px; height: 150px; right: 220px; top: 60px; }
+  .bong-cum .b2 { width: 150px; height: 150px; right: 535px; top: 45px; background: linear-gradient(150deg, rgba(255,140,192,.24) 0%, rgba(255,140,192,.08) 100%); }
+  .nen-loang .b1 { width: 300px; height: 300px; right: 40px; top: -130px; }
+  .nen-loang .b2 { width: 150px; height: 150px; right: 200px; top: 60px; }
 }
 .dang-nhap .glow, .ch-dau .glow { display: none; }
 .dang-nhap::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background:
-    radial-gradient(900px 760px at -4% -10%, rgba(224,21,126,.78) 0%, rgba(224,21,126,.52) 22%, rgba(224,21,126,.24) 45%, rgba(224,21,126,.06) 66%, rgba(224,21,126,0) 82%),
-    radial-gradient(760px 700px at 104% 18%, rgba(163,0,79,.5) 0%, rgba(163,0,79,.3) 25%, rgba(163,0,79,.13) 50%, rgba(163,0,79,.03) 70%, rgba(163,0,79,0) 85%); }
+    radial-gradient(820px 680px at -4% -12%, rgba(224,21,126,.62) 0%, rgba(224,21,126,.38) 22%, rgba(224,21,126,.16) 45%, rgba(224,21,126,.04) 66%, rgba(224,21,126,0) 82%),
+    radial-gradient(640px 600px at 104% 14%, rgba(163,0,79,.32) 0%, rgba(163,0,79,.17) 28%, rgba(163,0,79,.06) 54%, rgba(163,0,79,0) 82%); }
 
 /* Mã QR nhóm Zalo trong thẻ Zalo (ẩn trên điện thoại — bấm nút là vào được) */
 .the-zalo .qr-zalo { width: 96px; height: 96px; flex: none; border-radius: 16px; background: #fff; padding: 6px; box-shadow: 0 0 0 4px rgba(255,255,255,.18); }
 .the-zalo .qr-zalo.nho { width: 72px; height: 72px; border-radius: 12px; padding: 4px; }
 .the-zalo .goi-y-qr { display: block; font-size: 11.5px; opacity: .72; margin-top: 4px; }
 @media (max-width: 640px) { .the-zalo { flex-wrap: wrap; } .the-zalo .qr-zalo, .the-zalo .goi-y-qr { display: none; } }
+
+/* Trang giới thiệu trên điện thoại: thoáng hơn, nút xếp đều toàn chiều ngang */
+@media (max-width: 900px) {
+  .lp-wrap { padding: 0 26px; }
+  .lp-hero { padding-bottom: 56px; }
+  .lp-hero-noi { margin-top: 64px; gap: 44px; }
+  .lp-hero .eyebrow { margin-bottom: 18px; }
+  .hero-chu .d1 { margin-bottom: .55em; }
+  .hero-chu .d3 { margin-top: -.12em; }
+  .lp-hero .nut { margin-top: 36px; flex-direction: column; gap: 12px; }
+  .lp-hero .nut .btn { width: 100%; justify-content: center; }
+  .lp-hero .nut .btn.co-orb { justify-content: space-between; }
+  .lp-the-noi { padding: 16px; }
+}
