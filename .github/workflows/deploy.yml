@@ -27,7 +27,7 @@ jobs:
       - run: npm run build
         env:
           # Đổi thành "/" khi gắn tên miền riêng (VD affiliate.nonson.vn)
-          VITE_BASE: /ns-affiliate-hub/
+          VITE_BASE: /affiliate/
       - run: cp dist/index.html dist/404.html
       - uses: actions/upload-pages-artifact@v3
         with:
