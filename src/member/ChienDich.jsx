@@ -48,7 +48,7 @@ export function DsChienDich() {
   const dem = (f) => ds.filter(f).length
   return (
     <>
-      <TrangDau eyebrow="Chiến dịch & chương trình" tieuDe="Chiến dịch Affiliate" phu="Đăng ký tham gia, nhận nhiệm vụ và quyền lợi của từng chương trình." />
+      <TrangDau tieuDe="Chiến dịch" phu="Đăng ký tham gia, nhận nhiệm vụ và quyền lợi của từng chương trình." />
       <div><Segment trang giaTri={tab} onChon={setTab} ds={[
         { v: 'dang', t: 'Đang diễn ra', dem: dem((c) => c.giai_doan === 'dang_dien_ra') },
         { v: 'sap', t: 'Sắp diễn ra', dem: dem((c) => c.giai_doan === 'sap_dien_ra') },

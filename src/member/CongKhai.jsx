@@ -209,7 +209,7 @@ export function DangKy() {
   }
   const tinh = (ck?.tinh_thanh || []).map((t) => ({ v: t, t }))
   return (
-    <KhungXT tieuDe={<>Tham gia <b>Affiliate Hub</b></>} phu="Miễn phí, chỉ mất 2 phút. Người mới bắt đầu cũng được hướng dẫn từng bước."
+    <KhungXT tieuDe={<>Tham gia <b>NS Affiliate</b></>} phu="Miễn phí, chỉ mất 2 phút. Người mới bắt đầu cũng được hướng dẫn từng bước."
       phai={<Link to="/dang-nhap" className="btn vien-sang sm">Đăng nhập</Link>}
       chan={<>Đã có tài khoản? <Link to="/dang-nhap">Đăng nhập</Link></>}>
       <div className="cot" style={{ gap: 14 }}>
@@ -343,7 +343,7 @@ export function XacThuc() {
               <span className="logo-tron" style={{ width: 56, height: 56, background: 'var(--orb)' }}><BadgeCheck size={26} /></span>
               <b style={{ fontSize: 18 }}>Cảm ơn {kq.ho_ten}!</b>
               <p className="muted-2">Email đã được xác nhận. Bạn có thể đăng ký chiến dịch và đặt lịch quay chụp ngay.</p>
-              <Link to={tv ? '/' : '/dang-nhap'} className="btn den lg rong">{tv ? 'Vào Affiliate Hub' : 'Đăng nhập'}</Link>
+              <Link to={tv ? '/' : '/dang-nhap'} className="btn den lg rong">{tv ? 'Vào NS Affiliate' : 'Đăng nhập'}</Link>
             </div>}
     </KhungXT>
   )
@@ -352,7 +352,7 @@ export function XacThuc() {
 export function VanBan({ khoa, tieuDe }) {
   const ck = useCongKhai()
   return (
-    <KhungXT tieuDe={<b>{tieuDe}</b>} chan={<Link to="/">Về trang Affiliate Hub</Link>}>
+    <KhungXT tieuDe={<b>{tieuDe}</b>} chan={<Link to="/">Về trang NS Affiliate</Link>}>
       {!ck ? <Spinner /> : <div style={{ whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.7, color: 'var(--ink-2)' }}>{ck[khoa] || 'Nội dung đang được cập nhật.'}</div>}
     </KhungXT>
   )
@@ -367,13 +367,13 @@ export function TaiApp() {
   const link = linkTaiApp()
   const chep = async () => { if (await saoChep(link)) bao('Đã chép link tải ứng dụng') }
   return (
-    <KhungXT tieuDe={<>Tải <b>ứng dụng</b></>} phu="Đưa Nón Sơn Affiliate Hub ra màn hình chính điện thoại: chạm 1 lần là mở, toàn màn hình như app thật. Miễn phí, không cần App Store hay CH Play."
+    <KhungXT tieuDe={<>Tải <b>ứng dụng</b></>} phu="Đưa NS Affiliate ra màn hình chính điện thoại: chạm 1 lần là mở, toàn màn hình như app thật. Miễn phí, không cần App Store hay CH Play."
       phai={<Link to="/dang-nhap" className="btn vien-sang sm">Đăng nhập</Link>}
       chan={<>Chưa có tài khoản? <Link to="/dang-ky">Đăng ký miễn phí</Link></>}>
       <div className="tai-app">
         <div className="tai-app-dau">
           <img className="bieu-tuong" src={import.meta.env.BASE_URL + 'icon-192.png'} alt="" width={64} height={64} />
-          <div className="gian"><b>Nón Sơn Affiliate Hub</b><span>Ứng dụng chính thức · Miễn phí</span></div>
+          <div className="gian"><b>NS Affiliate</b><span>Ứng dụng chính thức của Nón Sơn · Miễn phí</span></div>
         </div>
         <div className="tai-app-loi">
           <span><Zap size={14} />Mở 1 chạm</span>

@@ -21,16 +21,24 @@ export function useCongKhai() {
   return ck
 }
 
+// Điều hướng: nhóm "Làm Affiliate" (việc chính) và "Của tôi"; trên điện thoại Sản phẩm nằm giữa thanh dưới, nổi bật
 const MUC = [
-  { to: '/', ten: 'Trang chủ', ic: Home, end: true, nav: true },
-  { to: '/san-pham', ten: 'Sản phẩm', ic: ShoppingBag, nav: true },
-  { to: '/chien-dich', ten: 'Chiến dịch', ic: Megaphone, nav: true },
-  { to: '/lich-quay', ten: 'Lịch quay', ic: CalendarDays, nav: true },
-  { to: '/uu-dai', ten: 'Ưu đãi của tôi', ic: Gift },
-  { to: '/tai-nguyen', ten: 'Tài nguyên', ic: BookOpen },
-  { to: '/thong-bao', ten: 'Thông báo', ic: Bell, chuaDoc: true },
-  { to: '/ho-tro', ten: 'Hỗ trợ', ic: LifeBuoy },
-  { to: '/toi', ten: 'Tôi', ic: UserRound, nav: true }
+  { to: '/', ten: 'Trang chủ', ic: Home, end: true, nhom: 'chinh' },
+  { to: '/san-pham', ten: 'Sản phẩm', ic: ShoppingBag, nhom: 'chinh' },
+  { to: '/chien-dich', ten: 'Chiến dịch', ic: Megaphone, nhom: 'chinh' },
+  { to: '/lich-quay', ten: 'Lịch quay', ic: CalendarDays, nhom: 'chinh' },
+  { to: '/uu-dai', ten: 'Ưu đãi của tôi', ic: Gift, nhom: 'toi' },
+  { to: '/tai-nguyen', ten: 'Hướng dẫn & tài nguyên', ic: BookOpen, nhom: 'toi' },
+  { to: '/thong-bao', ten: 'Thông báo', ic: Bell, chuaDoc: true, nhom: 'toi' },
+  { to: '/ho-tro', ten: 'Hỗ trợ', ic: LifeBuoy, nhom: 'toi' },
+  { to: '/toi', ten: 'Tài khoản', ic: UserRound, nhom: 'toi' }
+]
+const NAV_DUOI = [
+  { to: '/', ten: 'Trang chủ', ic: Home, end: true },
+  { to: '/chien-dich', ten: 'Chiến dịch', ic: Megaphone },
+  { to: '/san-pham', ten: 'Sản phẩm', ic: ShoppingBag, giua: true },
+  { to: '/lich-quay', ten: 'Lịch quay', ic: CalendarDays },
+  { to: '/toi', ten: 'Tôi', ic: UserRound }
 ]
 
 function KhungThanhVien({ children }) {
@@ -42,39 +50,43 @@ function KhungThanhVien({ children }) {
     const t = Date.now()
     if (!window.__nsTaiToi || t - window.__nsTaiToi > 30000) { window.__nsTaiToi = t; taiToi() }
   }, [loc.pathname, taiToi])
+  useEffect(() => { window.scrollTo(0, 0) }, [loc.pathname])
   const chuaDoc = tv?.chua_doc || 0
+  const muc = (m) => (
+    <NavLink key={m.to} to={m.to} end={m.end} className={({ isActive }) => 'muc' + (isActive ? ' on' : '')}>
+      <m.ic size={19} strokeWidth={2} /><span className="gian">{m.ten}</span>{m.chuaDoc && chuaDoc > 0 && <span className="dem-nho">{chuaDoc > 99 ? '99+' : chuaDoc}</span>}
+    </NavLink>
+  )
   return (
     <div className="tv">
       <header className="tv-top">
-        <Link to="/" className="hang" style={{ gap: 9, flex: 1, minWidth: 0 }}><Brand toi={false} /></Link>
-        <CaiDatApp dienThoai render={(bam) => <IconBtn icon={Download} nhan="Tải ứng dụng" co="sm" onClick={bam} />} />
+        <Link to="/" aria-label="Trang chủ"><Brand toi={false} co="nho" /></Link>
+        <span className="gian" />
         <IconBtn icon={Bell} nhan="Thông báo" co="sm" onClick={() => nav('/thong-bao')}>{chuaDoc > 0 && <span className="cham-do" />}</IconBtn>
-        <IconBtn icon={LifeBuoy} nhan="Hỗ trợ" co="sm" onClick={() => nav('/ho-tro')} />
       </header>
       <div className="tv-khung">
         <aside className="tv-sb" aria-label="Menu thành viên">
-          <Link to="/" className="brand-sb"><Brand toi={false} /></Link>
+          <Link to="/" className="brand-sb" aria-label="Trang chủ"><Brand toi={false} /></Link>
           <div className="cuon">
-            {MUC.map((m) => (
-              <NavLink key={m.to} to={m.to} end={m.end} className={({ isActive }) => 'muc' + (isActive ? ' on' : '')}>
-                <m.ic size={19} strokeWidth={2} />{m.ten}{m.chuaDoc && chuaDoc > 0 && <span className="dem-nho">{chuaDoc > 99 ? '99+' : chuaDoc}</span>}
-              </NavLink>
-            ))}
+            <div className="nhom-sb">Làm Affiliate</div>
+            {MUC.filter((m) => m.nhom === 'chinh').map(muc)}
+            <div className="nhom-sb">Của tôi</div>
+            {MUC.filter((m) => m.nhom === 'toi').map(muc)}
             <CaiDatApp dienThoai render={(bam) => <button type="button" className="muc cai-app" onClick={bam}><Download size={19} strokeWidth={2} />Tải ứng dụng</button>} />
           </div>
           <div className="the-toi">
-            <span className="av sm" style={{ background: 'var(--ink)', color: '#fff' }}>{chuCai(tv?.ho_ten)}</span>
-            <div className="gian"><b className="cat">{tv?.ho_ten}</b><span>{tv?.cap_do?.ten || 'Thành viên'} · {tv?.ma}</span></div>
+            <span className="av sm">{chuCai(tv?.ho_ten)}</span>
+            <div className="gian"><b className="cat">{tv?.ho_ten}</b><span className="cat">{tv?.cap_do?.ten || 'Thành viên'} · {tv?.ma}</span></div>
             <IconBtn icon={LogOut} nhan="Đăng xuất" co="xs" kieu="mem" onClick={thoat} />
           </div>
         </aside>
         <main className="tv-main">{children}</main>
       </div>
-      <nav className="tv-nav" aria-label="Menu nhanh">
-        <div className="glow hong" style={{ width: 160, height: 160, left: -40, top: -60, opacity: 0.35, filter: 'blur(50px)' }} />
-        {MUC.filter((m) => m.nav).map((m) => (
-          <NavLink key={m.to} to={m.to} end={m.end} className={({ isActive }) => (isActive ? 'on' : '')}>
-            <m.ic size={20} strokeWidth={2.1} /><span>{m.ten}</span>
+      <nav className={'tv-nav' + (/^\/san-pham\/[^/]+/.test(loc.pathname) ? ' an' : '')} aria-label="Menu nhanh">
+        {NAV_DUOI.map((m) => (
+          <NavLink key={m.to} to={m.to} end={m.end} className={({ isActive }) => (m.giua ? 'giua' : '') + (isActive ? ' on' : '')}>
+            {m.giua ? <span className="tron"><m.ic size={22} strokeWidth={2.2} /></span> : <m.ic size={21} strokeWidth={2} />}
+            <span>{m.ten}</span>
           </NavLink>
         ))}
       </nav>

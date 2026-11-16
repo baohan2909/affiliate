@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { CaiDatApp, useManifest } from '../components/caidat'
 import { useAuth } from '../components/auth'
-import { Brand, Btn, Field, IconBtn, Modal, NonIcon, Spinner, useToast } from '../components/ui'
+import { Brand, Btn, Field, IconBtn, LogoO, Modal, Spinner, useToast } from '../components/ui'
 import { useLS } from '../lib/hooks'
 import { dangNhap, emailNhanSu, rpc } from '../lib/api'
 import { chuCai } from '../lib/format'
@@ -57,7 +57,7 @@ function DangNhapNS() {
       <div className="glow hong" style={{ width: 420, height: 420, right: -140, top: -160, opacity: 0.55 }} />
       <div className="glow vang" style={{ width: 220, height: 220, left: -80, bottom: -90, opacity: 0.2 }} />
       <form className="hop-dn cot" style={{ gap: 18 }} onSubmit={vao}>
-        <Brand phu="QUẢN TRỊ AFFILIATE" />
+        <Brand phu="Quản trị" />
         <div>
           <h1 style={{ fontSize: 30, fontWeight: 300, letterSpacing: '-.02em', lineHeight: 1.15 }}>Đăng nhập <b style={{ fontWeight: 800 }}>quản trị</b></h1>
           <p style={{ color: 'rgba(255,255,255,.66)', marginTop: 8, fontSize: 14.5 }}>Dành cho đội Affiliate Nón Sơn. Dùng mã nhân viên của bạn.</p>
@@ -122,8 +122,8 @@ function Khung({ ns, children }) {
         <aside className={'sidebar' + (gon ? ' gon' : '')} aria-label="Menu quản trị">
           <div className="glow hong" style={{ width: 220, height: 220, left: -90, top: -90, opacity: 0.4 }} />
           <div className="sb-brand">
-            <span className="logo-tron" style={{ background: 'var(--nut-chinh)' }}><NonIcon /></span>
-            <div className="an-gon"><b>Affiliate Hub</b><span>Quản trị Nón Sơn</span></div>
+            <LogoO co={38} />
+            <div className="an-gon"><b>NS Affiliate</b><span>Quản trị Nón Sơn</span></div>
             <button type="button" className="sb-gon" onClick={() => setGon(!gon)} aria-label={gon ? 'Mở rộng menu' : 'Thu gọn menu'}>{gon ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}</button>
           </div>
           <div className="sb-cuon">
@@ -136,7 +136,7 @@ function Khung({ ns, children }) {
                 </NavLink>
               </div>
             ))}
-            <CaiDatApp ten="Quản trị Affiliate Hub" render={(bam) => (
+            <CaiDatApp ten="NS Affiliate · Quản trị" render={(bam) => (
               <button type="button" className="nav-item cai-app" title="Cài ứng dụng quản trị" onClick={bam}><MonitorDown size={19} strokeWidth={2} /><span className="an-gon">Cài ứng dụng</span></button>
             )} />
           </div>
@@ -149,7 +149,7 @@ function Khung({ ns, children }) {
         </aside>
 
         <header className="topbar">
-          <span className="logo-tron" style={{ width: 36, height: 36, background: 'var(--ink)' }}><NonIcon size={16} /></span>
+          <LogoO co={36} />
           <span className="ten cat">{hienTai?.ten || 'Quản trị'}</span>
           <IconBtn icon={Bell} nhan="Hỗ trợ đang chờ" co="sm" onClick={() => nav('/quantri/ho-tro')}>{cho.ho_tro > 0 && <span className="cham-do" />}</IconBtn>
           <IconBtn icon={Menu} nhan="Menu" co="sm" onClick={() => setMoMenu(true)} />
@@ -176,7 +176,7 @@ function Khung({ ns, children }) {
                 {soDem(m) > 0 ? <span className="tag" style={{ background: '#FDE6F1', color: '#A3004F' }}>{soDem(m)}</span> : <ArrowRight size={16} className="muted" />}
               </Link>
             ))}
-            <CaiDatApp ten="Quản trị Affiliate Hub" render={(bam) => <Btn kieu="den" icon={MonitorDown} className="rong" style={{ marginTop: 8 }} onClick={bam}>Cài ứng dụng quản trị</Btn>} />
+            <CaiDatApp ten="NS Affiliate · Quản trị" render={(bam) => <Btn kieu="den" icon={MonitorDown} className="rong" style={{ marginTop: 8 }} onClick={bam}>Cài ứng dụng quản trị</Btn>} />
             <div className="hang" style={{ gap: 8, marginTop: 8 }}>
               <Btn kieu="vien" className="gian" icon={KeyRound} onClick={() => { setMoMenu(false); setMoMk(true) }}>Đổi mật khẩu</Btn>
               <Btn kieu="trong" className="gian" icon={LogOut} onClick={thoat}>Đăng xuất</Btn>
@@ -192,7 +192,7 @@ function Khung({ ns, children }) {
 export default function CongQuanTri() {
   const { dangKiem, ns, tv, thoat } = useAuth()
   useManifest('manifest-quantri.webmanifest')
-  useEffect(() => { document.title = 'Quản trị · Nón Sơn Affiliate Hub' }, [])
+  useEffect(() => { document.title = 'Quản trị · NS Affiliate' }, [])
   if (dangKiem) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Spinner size={30} /></div>
   if (!ns && !tv) return <DangNhapNS />
   if (tv || !ns.hoat_dong || ns.vai_tro === 'cua_hang') {

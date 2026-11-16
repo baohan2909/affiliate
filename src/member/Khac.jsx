@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
-  ArrowLeft, Bell, BookOpen, CheckCheck, Download, ExternalLink, FileText, Film, Gift, Image as IcAnh, KeyRound, Link2, LifeBuoy,
-  LogOut, Pin, Plus, ScrollText, Search, Send, Trash2, UserRound, Lock, Star, Heart, CalendarDays, Megaphone
+  ArrowLeft, Bell, BookOpen, CalendarDays, CheckCheck, Download, ExternalLink, FileText, Film, Gift, Heart, Image as IcAnh, KeyRound, LifeBuoy, Link2, Lock, LogOut, Megaphone, Pin, Plus, ScrollText, Search, Send, Star, Trash2, UserRound
 } from 'lucide-react'
-import { TheCaiApp } from '../components/caidat'
+import { CaiDatApp, TheCaiApp } from '../components/caidat'
+import { KetNoiShopee } from './SanPham'
 import { Anh, Bao, Btn, Chips, Chon, DongSwitch, Empty, Field, KhungTai, LoiTai, Md, Modal, Nhan, Segment, TextArea, ThanhTienDo, TrangDau, useToast } from '../components/ui'
 import { useAuth } from '../components/auth'
 import { useAsync, useDebounced } from '../lib/hooks'
@@ -30,7 +30,7 @@ export function UuDai() {
   const hien = nhom[tab]
   return (
     <>
-      <TrangDau eyebrow="Quyền lợi" tieuDe="Ưu đãi của tôi" phu="Quyền lợi Nón Sơn dành cho bạn theo cấp độ, nhóm hoặc riêng cá nhân." />
+      <TrangDau tieuDe="Ưu đãi của tôi" phu="Quyền lợi Nón Sơn dành cho bạn theo cấp độ, nhóm hoặc riêng cá nhân." />
       <div><Segment trang giaTri={tab} onChon={setTab} ds={[{ v: 'dang', t: 'Đang hiệu lực', dem: nhom.dang.length }, { v: 'sap', t: 'Sắp tới', dem: nhom.sap.length }, { v: 'het', t: 'Đã hết hạn' }]} /></div>
       {loading && !data ? <KhungTai /> : error && !data ? <LoiTai loi={error} thuLai={reload} />
         : hien.length === 0 ? <Empty icon={Gift} tieuDe="Chưa có ưu đãi ở mục này">Tích cực tham gia chiến dịch để lên cấp và nhận thêm quyền lợi.</Empty>
@@ -94,7 +94,7 @@ export function DsTaiNguyen() {
   const loc = ds.filter((r) => (!loai || r.loai === loai) && (!cm || r.chuyen_muc === cm) && khop(r.tieu_de + ' ' + (r.mo_ta || '') + ' ' + (r.san_pham?.ten || ''), qd))
   return (
     <>
-      <TrangDau eyebrow="Thư viện" tieuDe="Tài nguyên & hướng dẫn" phu="Hướng dẫn làm Affiliate, hình ảnh, video và tài liệu sản phẩm Nón Sơn." />
+      <TrangDau tieuDe="Hướng dẫn & tài nguyên" phu="Hướng dẫn làm Affiliate, hình ảnh, video và tài liệu sản phẩm Nón Sơn." />
       <div className="toolbar">
         <label className="input-tron"><Search size={17} /><input placeholder="Tìm tài nguyên…" value={q} onChange={(e) => setQ(e.target.value)} /></label>
         {dsCm.length > 1 && <Chon kieu="tron" ds={[{ v: '', t: 'Mọi chuyên mục' }, ...dsCm.map((x) => ({ v: x, t: x }))]} giaTri={cm} onChon={setCm} />}
@@ -178,7 +178,7 @@ export function ThongBao() {
   }
   return (
     <>
-      <TrangDau eyebrow="Hộp thư" tieuDe="Thông báo" phu="Tin từ Nón Sơn về lịch quay, chiến dịch, ưu đãi và cộng đồng."
+      <TrangDau tieuDe="Thông báo" phu="Tin từ Nón Sơn về lịch quay, chiến dịch, ưu đãi và cộng đồng."
         phai={chua > 0 && <Btn kieu="vien" co="sm" icon={CheckCheck} onClick={docHet}>Đọc tất cả</Btn>} />
       <div><Segment trang giaTri={loc} onChon={setLoc} ds={[{ v: '', t: 'Tất cả' }, { v: 'chua', t: 'Chưa đọc', dem: chua }]} /></div>
       {loading && !data ? <KhungTai /> : error && !data ? <LoiTai loi={error} thuLai={reload} />
@@ -234,7 +234,7 @@ export function DsHoTro() {
   const ds = data || []
   return (
     <>
-      <TrangDau eyebrow="Trung tâm hỗ trợ" tieuDe="Hỗ trợ" phu="Câu hỏi thường gặp và yêu cầu hỗ trợ của bạn."
+      <TrangDau tieuDe="Hỗ trợ" phu="Câu hỏi thường gặp và yêu cầu hỗ trợ của bạn."
         phai={<Btn kieu="den" icon={Plus} onClick={() => setTao(true)}>Gửi yêu cầu</Btn>} />
       <div className="hai-cot">
         <section className="lon">
@@ -418,7 +418,7 @@ function HoatDong({ tabDau }) {
   const ds = d[tab] || []
   return (
     <div className="cot" style={{ gap: 12 }}>
-      <div style={{ overflowX: 'auto' }}><Segment trang giaTri={tab} onChon={setTab} ds={[
+      <div><Segment trang giaTri={tab} onChon={setTab} ds={[
         { v: 'chien_dich', t: 'Chiến dịch', dem: d.chien_dich.length }, { v: 'bai_nop', t: 'Bài nộp', dem: d.bai_nop.length },
         { v: 'lich', t: 'Lịch quay', dem: d.lich.length }, { v: 'yeu_thich', t: 'Đã lưu', dem: d.yeu_thich.length }, { v: 'uu_dai', t: 'Ưu đãi riêng', dem: d.uu_dai.length }]} /></div>
       <div className="card" style={{ paddingTop: 4, paddingBottom: 4 }}>
@@ -481,6 +481,28 @@ function CaiDat({ tv }) {
   )
 }
 
+// Lưới tiện ích trang Tài khoản (thay cho menu phụ trên điện thoại)
+function MenuToi({ tv }) {
+  const [kn, setKn] = useState(false)
+  const chuaDoc = tv.chua_doc || 0
+  const o = [
+    { to: '/uu-dai', ten: 'Ưu đãi của tôi', ic: Gift },
+    { to: '/tai-nguyen', ten: 'Hướng dẫn', ic: BookOpen },
+    { to: '/thong-bao', ten: 'Thông báo', ic: Bell, dem: chuaDoc },
+    { to: '/ho-tro', ten: 'Hỗ trợ', ic: LifeBuoy }
+  ]
+  return (
+    <>
+      <nav className="menu-toi" aria-label="Tiện ích">
+        {o.map((x) => <Link key={x.to} to={x.to}><span className="ic"><x.ic size={20} />{x.dem > 0 && <i className="dem-nho">{x.dem > 99 ? '99+' : x.dem}</i>}</span>{x.ten}</Link>)}
+        <button type="button" onClick={() => setKn(true)}><span className={'ic' + (tv.shopee_aff_id ? ' ok' : '')}><Link2 size={20} /></span>{tv.shopee_aff_id ? 'Shopee đã kết nối' : 'Kết nối Shopee'}</button>
+        <CaiDatApp dienThoai render={(bam) => <button type="button" onClick={bam}><span className="ic"><Download size={20} /></span>Tải ứng dụng</button>} />
+      </nav>
+      <KetNoiShopee mo={kn} dong={() => setKn(false)} onXong={() => setKn(false)} />
+    </>
+  )
+}
+
 export function Toi() {
   const { tv } = useAuth()
   const [sp, setSp] = useSearchParams()
@@ -490,6 +512,7 @@ export function Toi() {
   return (
     <>
       <TheCapDoToi tv={tv} />
+      <MenuToi tv={tv} />
       {tv.trang_thai === 'khoa' && <Bao kieu="loi">Tài khoản đang tạm khóa{tv.ly_do_khoa ? ': ' + tv.ly_do_khoa : ''}. Liên hệ Hỗ trợ để được giải quyết.</Bao>}
       <div><Segment trang giaTri={tab} onChon={datTab} ds={[{ v: 'hoat_dong', t: 'Hoạt động', icon: Star }, { v: 'ho_so', t: 'Hồ sơ', icon: UserRound }, { v: 'cai_dat', t: 'Cài đặt', icon: Lock }]} /></div>
       {tab === 'ho_so' && <HoSo tv={tv} />}

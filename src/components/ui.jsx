@@ -12,16 +12,19 @@ export function NonIcon({ size = 18, stroke = 1.9 }) {
     </svg>
   )
 }
-export function Brand({ toi = true, phu = 'AFFILIATE HUB' }) {
+// Logo chữ tối giản: NS (đậm, chấm hồng) / AFFILIATE — toi: trên nền tối
+export function Brand({ toi = true, phu = 'Affiliate', co }) {
   return (
-    <div className="hang" style={{ gap: 10 }}>
-      <span className="logo-tron" style={{ background: toi ? 'rgba(255,255,255,.12)' : 'var(--ink)', border: toi ? '1px solid rgba(255,255,255,.22)' : 'none' }}><NonIcon /></span>
-      <span style={{ lineHeight: 1.05 }}>
-        <span style={{ display: 'block', fontWeight: 800, fontSize: 12, letterSpacing: '.2em', color: toi ? '#fff' : 'var(--ink)' }}>NÓN SƠN</span>
-        <span style={{ display: 'block', fontWeight: 700, fontSize: 9.5, letterSpacing: '.24em', color: toi ? 'var(--pink-2)' : 'var(--pink)', marginTop: 3 }}>{phu}</span>
-      </span>
-    </div>
+    <span className={'logo-ns' + (toi ? ' toi' : '') + (co ? ' ' + co : '')} aria-label={'NS ' + phu}>
+      <b>NS<i /></b>
+      <small>{phu}</small>
+    </span>
   )
+}
+
+// Ô logo vuông (thanh bên quản trị, chỗ hẹp): NS + chấm hồng trên nền rượu vang
+export function LogoO({ co = 38 }) {
+  return <span className="logo-o" style={{ width: co, height: co, fontSize: Math.round(co * 0.44) }} aria-hidden="true"><b>NS<i /></b></span>
 }
 
 export function Spinner({ size = 22 }) { return <span className="spin" style={{ width: size, height: size }} aria-label="Đang tải" /> }

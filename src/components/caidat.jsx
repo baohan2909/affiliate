@@ -1,7 +1,7 @@
 // Cài ứng dụng (PWA) lên điện thoại / máy tính — dùng chung cho 3 cổng
 import { useEffect, useState } from 'react'
 import { Download, Globe, MonitorDown, MoreVertical, PlusSquare, Share, X } from 'lucide-react'
-import { Bao, Btn, IconBtn, MaQR, Modal, NonIcon, Segment } from './ui'
+import { Bao, Btn, IconBtn, LogoO, MaQR, Modal, Segment } from './ui'
 import { useLS } from '../lib/hooks'
 
 let suKien = null
@@ -51,7 +51,7 @@ function Buoc({ so, children }) {
   return <li><span className="so">{so}</span><div>{children}</div></li>
 }
 
-export function HuongDanCai({ mo, dong, ten = 'Nón Sơn Affiliate Hub', dienThoai }) {
+export function HuongDanCai({ mo, dong, ten = 'NS Affiliate', dienThoai }) {
   if (dienThoai) return (
     <Modal mo={mo} dong={dong} tieuDe="Cài ứng dụng lên điện thoại" moTa={`Đưa ${ten} ra màn hình chính điện thoại, chạm 1 lần là mở.`} chan={<Btn kieu="den" onClick={dong}>Đã hiểu</Btn>}>
       <NoiDungCai />
@@ -136,8 +136,8 @@ export function TheCaiApp({ anDuoc }) {
   return (
     <CaiDatApp dienThoai render={(bam) => (
       <div className="the-cai-app">
-        <span className="logo-tron"><NonIcon size={18} /></span>
-        <div className="gian"><b>Cài Affiliate Hub lên điện thoại</b><span>Mở nhanh từ màn hình chính như một ứng dụng.</span></div>
+        <LogoO co={42} />
+        <div className="gian"><b>Cài NS Affiliate lên điện thoại</b><span>Mở nhanh từ màn hình chính như một ứng dụng.</span></div>
         <Btn kieu="trang" co="sm" icon={Download} onClick={bam}>Cài đặt</Btn>
         {anDuoc && <IconBtn icon={X} nhan="Ẩn" co="xs" kieu="kinh" onClick={() => setAn(true)} />}
       </div>

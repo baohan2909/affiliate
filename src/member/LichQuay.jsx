@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, CalendarDays, CalendarPlus, Clock, LocateFixed, MapPin, Navigation, QrCode, Search, Store, X, History } from 'lucide-react'
-import { Btn, Chips, Empty, Field, KhungTai, LoiTai, MaQR, Modal, Nhan, Sao, Segment, TrangDau, useToast, useXacNhan, Bao, Md, TextArea } from '../components/ui'
+import { Btn, Chips, Chon, Empty, Field, KhungTai, LoiTai, MaQR, Modal, Nhan, Sao, Segment, TrangDau, useToast, useXacNhan, Bao, Md, TextArea } from '../components/ui'
 import { useAuth } from '../components/auth'
 import { useAsync } from '../lib/hooks'
 import { rpc } from '../lib/api'
@@ -106,7 +106,7 @@ export function LichCuaToi() {
   const hien = tab === 'sap' ? sapToi : daQua
   return (
     <>
-      <TrangDau eyebrow="Quay chụp tại cửa hàng" tieuDe="Lịch quay chụp" phu="Đặt lịch đến cửa hàng Nón Sơn để quay video, chụp ảnh sản phẩm thật."
+      <TrangDau tieuDe="Lịch quay chụp" phu="Đặt lịch đến cửa hàng Nón Sơn để quay video, chụp ảnh sản phẩm thật."
         phai={<Btn kieu="den" icon={CalendarPlus} onClick={() => nav('/lich-quay/dat')}>Đặt lịch</Btn>} />
       <NhacXacThuc />
       <div><Segment trang giaTri={tab} onChon={setTab} ds={[{ v: 'sap', t: 'Sắp tới', dem: sapToi.length }, { v: 'qua', t: 'Đã qua' }]} /></div>
@@ -177,10 +177,8 @@ export function DatLich() {
         <div className="cot" style={{ gap: 12 }}>
           <div className="toolbar">
             <label className="input-tron"><Search size={17} /><input placeholder="Tìm cửa hàng, đường, phường…" value={q} onChange={(e) => setQ(e.target.value)} /></label>
-            <Btn kieu={viTri ? 'den' : 'vien'} co="md" icon={LocateFixed} onClick={ganToi}>Gần tôi</Btn>
-          </div>
-          <div className="loc-cuon">
-            <Chips co="sm" trang ds={[{ v: '', t: 'Tất cả', dem: (dsCh || []).length }, ...dsTinh.map(([t, n]) => ({ v: t, t, dem: n }))]} giaTri={tinh} onChon={(v) => { setTinh(v); setViTri(null) }} />
+            <Chon kieu="tron" tim ds={[{ v: '', t: 'Mọi tỉnh/thành', phu: (dsCh || []).length + ' cửa hàng' }, ...dsTinh.map(([t, n]) => ({ v: t, t, phu: n + ' cửa hàng' }))]} giaTri={tinh} onChon={(v) => { setTinh(v); setViTri(null) }} />
+            <Btn kieu={viTri ? 'dam' : 'vien'} co="md" icon={LocateFixed} onClick={ganToi}>Gần tôi</Btn>
           </div>
           {loc.length === 0 ? <Empty icon={Store} tieuDe="Không có cửa hàng phù hợp">Thử tìm với từ khóa khác hoặc chọn tỉnh/thành khác.</Empty>
             : <div className="ds-ch">{loc.slice(0, 80).map((c) => (

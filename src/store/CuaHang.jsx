@@ -26,7 +26,7 @@ function DangNhapCH() {
     <div className="dang-nhap">
       <div className="glow hong" style={{ width: 380, height: 380, right: -130, top: -150, opacity: 0.5 }} />
       <form className="hop-dn cot" style={{ gap: 18 }} onSubmit={vao}>
-        <Brand phu="CỔNG CỬA HÀNG" />
+        <Brand phu="Cửa hàng" />
         <div>
           <h1 style={{ fontSize: 30, fontWeight: 300, letterSpacing: '-.02em', lineHeight: 1.15 }}>Đón thành viên <b style={{ fontWeight: 800 }}>đến quay chụp</b></h1>
           <p style={{ color: 'rgba(255,255,255,.66)', marginTop: 8, fontSize: 14.5 }}>Đăng nhập bằng mã cửa hàng và mật khẩu do bộ phận Affiliate cấp.</p>
@@ -210,7 +210,7 @@ function CongCH() {
       <header className="ch-dau">
         <div className="glow hong" style={{ width: 260, height: 260, right: -90, top: -120, opacity: 0.5 }} />
         <div className="hang" style={{ gap: 10 }}>
-          <Brand phu="CỔNG CỬA HÀNG" />
+          <Brand phu="Cửa hàng" />
           <span style={{ flex: 1 }} />
           <CaiDatApp ten="Cổng cửa hàng" render={(bam) => <IconBtn icon={Download} nhan="Cài ứng dụng cửa hàng" co="sm" kieu="kinh" onClick={bam} />} />
           <IconBtn icon={KeyRound} nhan="Đổi mật khẩu" co="sm" kieu="kinh" onClick={() => setMk(true)} />
@@ -242,7 +242,7 @@ function CongCH() {
 export default function CongCuaHang() {
   const { dangKiem, ns, tv, thoat } = useAuth()
   useManifest('manifest-cuahang.webmanifest')
-  useEffect(() => { document.title = 'Cổng cửa hàng · Nón Sơn Affiliate Hub' }, [])
+  useEffect(() => { document.title = 'Cổng cửa hàng · NS Affiliate' }, [])
   if (dangKiem) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Spinner size={30} /></div>
   if (!ns && !tv) return <DangNhapCH />
   if (tv || ns.vai_tro !== 'cua_hang' || !ns.hoat_dong) {

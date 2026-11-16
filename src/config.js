@@ -5,5 +5,5 @@ export const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdX
 // Miền email nội bộ cho tài khoản nhân sự / cửa hàng (không gửi thư tới các miền này)
 export const MIEN_NHAN_SU = 'nhansu.nsaffiliate.vn'
 export const MIEN_CUA_HANG = 'cuahang.nsaffiliate.vn'
-export const TEN_APP = 'Nón Sơn Affiliate Hub'
+export const TEN_APP = 'NS Affiliate'
 export const PHIEN_BAN = '1.0.0'
