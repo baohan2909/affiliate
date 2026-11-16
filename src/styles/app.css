@@ -773,3 +773,36 @@ a.kpi:hover, button.kpi:hover { transform: translateY(-2px); box-shadow: var(--s
 .ct-kenh .dau span { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .ct-kenh .dau small { font-size: 11.5px; color: var(--muted); }
 .ct-kenh .kenh-thanh { background: #fff; }
+
+/* ---------- Tải ứng dụng ---------- */
+.tv-sb .muc.cai-app { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 14px; margin-top: 8px; border-radius: 999px; border: 1px dashed var(--line-2); background: transparent; color: var(--pink-deep, #A3004F); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; transition: background .16s, border-color .16s; }
+.tv-sb .muc.cai-app:hover { background: #FDE6F1; border-color: #F5B6D3; }
+.lp-nut-tai svg { margin-right: 2px; }
+.lp-tai { display: inline-flex; align-items: center; gap: 5px; color: #FF8CC0; font-weight: 700; }
+.lp-tai svg { vertical-align: -2px; }
+.xt-tai { display: block; margin-top: 10px; }
+.xt-tai a { display: inline-flex; align-items: center; gap: 6px; }
+.tai-app { display: flex; flex-direction: column; gap: 16px; }
+.tai-app-dau { display: flex; align-items: center; gap: 14px; }
+.tai-app-dau .bieu-tuong { width: 64px; height: 64px; border-radius: 18px; flex: none; box-shadow: 0 10px 24px rgba(224,21,126,.28); }
+.tai-app-dau .gian { min-width: 0; }
+.tai-app-dau b { display: block; font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
+.tai-app-dau span { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.tai-app-loi { display: flex; flex-wrap: wrap; gap: 6px; }
+.tai-app-loi span { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 999px; background: #FDE6F1; color: #A3004F; font-size: 12.5px; font-weight: 700; }
+.cai-nd { display: flex; flex-direction: column; gap: 14px; }
+.cai-nd .phan-doan { display: flex; }
+.cai-nd .phan-doan button { flex: 1; }
+.tai-app-qr { display: flex; align-items: center; gap: 16px; padding: 14px; border-radius: 24px; background: var(--soft); }
+.tai-app-qr .gian { min-width: 0; }
+.tai-app-qr b { display: block; font-size: 14.5px; font-weight: 800; }
+.tai-app-qr span { display: block; font-size: 13px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+.tai-app-link { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; border-radius: 999px; border: 1px solid var(--line-2); }
+.tai-app-link .cat { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 700; color: var(--ink-2); }
+.link-tai { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.link-tai .gian { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.link-tai .duong { font-size: 15px; font-weight: 800; color: var(--ink); }
+@media (max-width: 480px) {
+  .lp-nut-tai { width: 40px; padding: 0 !important; justify-content: center; }
+  .lp-nut-tai span { display: none; }
+}

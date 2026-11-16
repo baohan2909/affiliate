@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import { Bell, BookOpen, CalendarDays, Gift, Home, LifeBuoy, LogOut, Megaphone, ShoppingBag, UserRound, Shield, Store } from 'lucide-react'
+import { Bell, BookOpen, CalendarDays, Download, Gift, Home, LifeBuoy, LogOut, Megaphone, ShoppingBag, UserRound, Shield, Store } from 'lucide-react'
+import { CaiDatApp } from '../components/caidat'
 import { useAuth } from '../components/auth'
 import { Brand, Btn, IconBtn, Spinner } from '../components/ui'
 import { chuCai } from '../lib/format'
 import { rpc } from '../lib/api'
-import { LandingPage, DangNhap, DangKy, QuenMatKhau, DatLaiMatKhau, XacThuc, VanBan } from './CongKhai'
+import { LandingPage, DangNhap, DangKy, QuenMatKhau, DatLaiMatKhau, XacThuc, VanBan, TaiApp } from './CongKhai'
 import TrangChu from './TrangChu'
 import { DsSanPham, CtSanPham } from './SanPham'
 import { DsChienDich, CtChienDich } from './ChienDich'
@@ -46,6 +47,7 @@ function KhungThanhVien({ children }) {
     <div className="tv">
       <header className="tv-top">
         <Link to="/" className="hang" style={{ gap: 9, flex: 1, minWidth: 0 }}><Brand toi={false} /></Link>
+        <CaiDatApp dienThoai render={(bam) => <IconBtn icon={Download} nhan="Tải ứng dụng" co="sm" onClick={bam} />} />
         <IconBtn icon={Bell} nhan="Thông báo" co="sm" onClick={() => nav('/thong-bao')}>{chuaDoc > 0 && <span className="cham-do" />}</IconBtn>
         <IconBtn icon={LifeBuoy} nhan="Hỗ trợ" co="sm" onClick={() => nav('/ho-tro')} />
       </header>
@@ -58,6 +60,7 @@ function KhungThanhVien({ children }) {
                 <m.ic size={19} strokeWidth={2} />{m.ten}{m.chuaDoc && chuaDoc > 0 && <span className="dem-nho">{chuaDoc > 99 ? '99+' : chuaDoc}</span>}
               </NavLink>
             ))}
+            <CaiDatApp dienThoai render={(bam) => <button type="button" className="muc cai-app" onClick={bam}><Download size={19} strokeWidth={2} />Tải ứng dụng</button>} />
           </div>
           <div className="the-toi">
             <span className="av sm" style={{ background: 'var(--ink)', color: '#fff' }}>{chuCai(tv?.ho_ten)}</span>
@@ -103,7 +106,7 @@ function LaNhanSu({ ns, thoat }) {
 export default function CongThanhVien() {
   const { dangKiem, tv, ns, thoat } = useAuth()
   const loc = useLocation()
-  const congKhai = ['/gioi-thieu', '/dang-ky', '/dang-nhap', '/quen-mat-khau', '/dat-lai-mat-khau', '/xac-thuc', '/dieu-khoan', '/chinh-sach']
+  const congKhai = ['/gioi-thieu', '/dang-ky', '/dang-nhap', '/quen-mat-khau', '/dat-lai-mat-khau', '/xac-thuc', '/dieu-khoan', '/chinh-sach', '/tai-app']
   if (congKhai.some((p) => loc.pathname === p)) {
     return (
       <Routes>
@@ -115,6 +118,7 @@ export default function CongThanhVien() {
         <Route path="/xac-thuc" element={<XacThuc />} />
         <Route path="/dieu-khoan" element={<VanBan khoa="dieu_khoan" tieuDe="Điều khoản tham gia" />} />
         <Route path="/chinh-sach" element={<VanBan khoa="chinh_sach" tieuDe="Chính sách dữ liệu cá nhân" />} />
+        <Route path="/tai-app" element={<TaiApp />} />
       </Routes>
     )
   }

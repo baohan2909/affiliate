@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, BadgeCheck, CalendarDays, ChevronDown, Eye, EyeOff, Megaphone, Plus, ShoppingBag, Sparkles, Trash2, Users, MailCheck, KeyRound, CircleAlert, Percent } from 'lucide-react'
-import { Brand, Btn, Chon, Field, IconBtn, Bao, Spinner, ThanhTienDo, Chips, MaQR, useToast } from '../components/ui'
+import { ArrowRight, BadgeCheck, CalendarDays, ChevronDown, Eye, EyeOff, Megaphone, Plus, ShoppingBag, Sparkles, Trash2, Users, MailCheck, KeyRound, CircleAlert, Percent, Download, Copy, Smartphone, Zap, Maximize2, Feather } from 'lucide-react'
+import { Brand, Btn, Chon, Field, IconBtn, Bao, Spinner, ThanhTienDo, Chips, MaQR, saoChep, useToast } from '../components/ui'
+import { CaiDatApp, NoiDungCai, linkTaiApp, useCaiDat } from '../components/caidat'
 import { useAuth } from '../components/auth'
 import { dangNhap, rpc, taiKhoan } from '../lib/api'
 import { NEN_TANG } from '../lib/hang'
@@ -28,6 +29,7 @@ export function LandingPage() {
           <nav className="lp-nav">
             <Brand />
             <span className="gian" />
+            <CaiDatApp render={() => <Link to="/tai-app" className="btn vien-sang sm lp-nut-tai" aria-label="Tải ứng dụng"><Download size={15} strokeWidth={2.4} /><span>Tải app</span></Link>} />
             <Link to="/dang-nhap" className="btn vien-sang sm">Đăng nhập</Link>
           </nav>
           <div className="lp-hero-noi">
@@ -42,7 +44,7 @@ export function LandingPage() {
                 <Link to="/dang-ky" className="btn den lg co-orb">Đăng ký thành viên<span className="orb"><ArrowRight size={17} strokeWidth={2.6} /></span></Link>
                 <Link to="/dang-nhap" className="btn vien-sang lg">Tôi đã có tài khoản</Link>
               </div>
-              <p className="nho" style={{ color: 'rgba(255,255,255,.55)', marginTop: 14 }}>Miễn phí · Dành cho cả người mới bắt đầu</p>
+              <p className="nho" style={{ color: 'rgba(255,255,255,.55)', marginTop: 14 }}>Miễn phí · Dành cho cả người mới bắt đầu<CaiDatApp render={() => <> · <Link to="/tai-app" className="lp-tai"><Smartphone size={14} />Tải ứng dụng về máy</Link></>} /></p>
             </div>
             <div className="lp-the-noi troi">
               {[
@@ -148,7 +150,7 @@ export function DangNhap() {
   return (
     <KhungXT tieuDe={<>Chào mừng <b>trở lại</b></>} phu="Đăng nhập để xem sản phẩm, chiến dịch và lịch quay chụp của bạn."
       phai={<Link to="/dang-ky" className="btn vien-sang sm">Đăng ký</Link>}
-      chan={<>Chưa có tài khoản? <Link to="/dang-ky">Đăng ký miễn phí</Link></>}>
+      chan={<>Chưa có tài khoản? <Link to="/dang-ky">Đăng ký miễn phí</Link><CaiDatApp render={() => <span className="xt-tai"><Link to="/tai-app"><Smartphone size={14} />Tải ứng dụng về máy</Link></span>} /></>}>
       <form className="cot" onSubmit={gui}>
         <Field nhan="Email" batBuoc type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <OMatKhau value={mk} onChange={(e) => setMk(e.target.value)} />
@@ -357,3 +359,38 @@ export function VanBan({ khoa, tieuDe }) {
 }
 
 export { NutZalo, MaQR }
+
+// ---------- Tải ứng dụng (trang công khai, gửi link vào nhóm Zalo) ----------
+export function TaiApp() {
+  const bao = useToast()
+  const { daCai } = useCaiDat()
+  const link = linkTaiApp()
+  const chep = async () => { if (await saoChep(link)) bao('Đã chép link tải ứng dụng') }
+  return (
+    <KhungXT tieuDe={<>Tải <b>ứng dụng</b></>} phu="Đưa Nón Sơn Affiliate Hub ra màn hình chính điện thoại: chạm 1 lần là mở, toàn màn hình như app thật. Miễn phí, không cần App Store hay CH Play."
+      phai={<Link to="/dang-nhap" className="btn vien-sang sm">Đăng nhập</Link>}
+      chan={<>Chưa có tài khoản? <Link to="/dang-ky">Đăng ký miễn phí</Link></>}>
+      <div className="tai-app">
+        <div className="tai-app-dau">
+          <img className="bieu-tuong" src={import.meta.env.BASE_URL + 'icon-192.png'} alt="" width={64} height={64} />
+          <div className="gian"><b>Nón Sơn Affiliate Hub</b><span>Ứng dụng chính thức · Miễn phí</span></div>
+        </div>
+        <div className="tai-app-loi">
+          <span><Zap size={14} />Mở 1 chạm</span>
+          <span><Maximize2 size={14} />Toàn màn hình</span>
+          <span><Feather size={14} />Nhẹ, không tốn bộ nhớ</span>
+        </div>
+        {daCai ? (
+          <>
+            <Bao kieu="ok">Bạn đang dùng ứng dụng rồi.</Bao>
+            <Link to="/" className="btn den lg rong">Vào trang chủ</Link>
+          </>
+        ) : <NoiDungCai />}
+        <div className="tai-app-link">
+          <span className="cat">{link.replace(/^https?:\/\//, '')}</span>
+          <Btn co="sm" kieu="mem" icon={Copy} onClick={chep}>Chép link</Btn>
+        </div>
+      </div>
+    </KhungXT>
+  )
+}

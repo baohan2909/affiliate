@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Copy, KeyRound, Link2, PlugZap, RefreshCw, RotateCcw, Save, ShieldCheck, UserPlus } from 'lucide-react'
-import { Bao, Btn, Chips, Chon, DongSwitch, Field, KhungTai, LoiTai, Modal, Nhan, Segment, TextArea, TrangDau, saoChep, useToast, useXacNhan } from '../components/ui'
+import { Copy, ExternalLink, KeyRound, Link2, PlugZap, RefreshCw, RotateCcw, Save, ShieldCheck, UserPlus } from 'lucide-react'
+import { Bao, Btn, Chips, Chon, DongSwitch, Field, KhungTai, LoiTai, MaQR, Modal, Nhan, Segment, TextArea, TrangDau, saoChep, useToast, useXacNhan } from '../components/ui'
 import { useAsync } from '../lib/hooks'
 import { rpc, sb, taiKhoan } from '../lib/api'
 import { SUPABASE_URL, SUPABASE_KEY } from '../config'
@@ -115,6 +115,7 @@ function CauHinh() {
   return (
     <div className="cot" style={{ gap: 16 }}>
       {laQT && <KetNoiNhanh />}
+      <LinkTaiApp />
       <TheCH tieuDe="Nhóm Zalo cộng đồng" moTa="Hiện ở trang chủ thành viên, trang giới thiệu và sau khi đăng ký." khoa="zalo" onLuu={() => c.zalo}>
         <div className="luoi-form">
           <Field nhan="Tên nhóm" value={c.zalo.ten_nhom} onChange={(e) => dat('zalo', { ...c.zalo, ten_nhom: e.target.value })} />
@@ -182,6 +183,28 @@ async function goiHamNhanh(hanhDong) {
   if (!r.ok) throw new Error(j.loi || 'Không gọi được máy chủ')
   return j
 }
+// Link + mã QR trang Tải ứng dụng để gửi cho thành viên (nhóm Zalo, bài đăng…)
+function LinkTaiApp() {
+  const bao = useToast()
+  const link = window.location.origin + '/tai-app'
+  const chep = async () => { if (await saoChep(link)) bao('Đã chép link tải ứng dụng') }
+  return (
+    <div className="card">
+      <div className="dau-the"><div><h2>Link tải ứng dụng</h2><p className="nho muted" style={{ marginTop: 2 }}>Gửi vào nhóm Zalo hoặc bài đăng. Thành viên mở link sẽ thấy hướng dẫn cài đúng theo máy (iPhone, Android, máy tính).</p></div></div>
+      <div className="link-tai">
+        <MaQR giaTri={link} size={112} />
+        <div className="gian">
+          <span className="cat duong">{link.replace(/^https?:\/\//, '')}</span>
+          <div className="hang wrap" style={{ gap: 8 }}>
+            <Btn kieu="den" co="sm" icon={Copy} onClick={chep}>Chép link</Btn>
+            <a className="btn vien sm" href={link} target="_blank" rel="noreferrer"><ExternalLink size={15} />Mở trang</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function KetNoiNhanh() {
   const bao = useToast()
   const [sp, setSp] = useSearchParams()
