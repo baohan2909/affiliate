@@ -197,8 +197,8 @@ function KetNoiNhanh() {
   const ketNoi = async () => {
     setDang('kn')
     try {
-      await rpc('fn_qt_nhanh_bat_dau')
-      window.location.href = 'https://nhanh.vn/oauth?appId=' + t.app_id + '&returnLink=' + encodeURIComponent(URL_NHANH)
+      const r = await rpc('fn_qt_nhanh_bat_dau')
+      window.location.href = 'https://nhanh.vn/oauth?' + new URLSearchParams({ appId: r.app_id || t.app_id, service: 'pos', verifyCode: r.verify_code, returnLink: URL_NHANH }).toString()
     } catch (e) { bao(e.message, 'loi'); setDang('') }
   }
   const dongBo = async () => {
