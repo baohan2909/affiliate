@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Copy, KeyRound, RefreshCw, RotateCcw, Save, ShieldCheck, UserPlus } from 'lucide-react'
+import { Copy, KeyRound, Link2, PlugZap, RefreshCw, RotateCcw, Save, ShieldCheck, UserPlus } from 'lucide-react'
 import { Bao, Btn, Chips, Chon, DongSwitch, Field, KhungTai, LoiTai, Modal, Nhan, Segment, TextArea, TrangDau, saoChep, useToast, useXacNhan } from '../components/ui'
 import { useAsync } from '../lib/hooks'
-import { rpc, taiKhoan } from '../lib/api'
+import { rpc, sb, taiKhoan } from '../lib/api'
+import { SUPABASE_URL, SUPABASE_KEY } from '../config'
 import { fmtNgayGio, homNay, congNgay, khop, tuongDoi } from '../lib/format'
 import { TT_THU, VAI_TRO } from '../lib/hang'
 import { BangDL, DsDong, ONhapAnh, OTim, lamMoiCauHinh } from './chung'
@@ -112,6 +113,7 @@ function CauHinh() {
   const ds = (s) => s.split('\n').map((x) => x.trim()).filter(Boolean)
   return (
     <div className="cot" style={{ gap: 16 }}>
+      {laQT && <KetNoiNhanh />}
       <TheCH tieuDe="Nhóm Zalo cộng đồng" moTa="Hiện ở trang chủ thành viên, trang giới thiệu và sau khi đăng ký." khoa="zalo" onLuu={() => c.zalo}>
         <div className="luoi-form">
           <Field nhan="Tên nhóm" value={c.zalo.ten_nhom} onChange={(e) => dat('zalo', { ...c.zalo, ten_nhom: e.target.value })} />
@@ -166,6 +168,79 @@ function CauHinh() {
           <Field nhan="URL" value={c.app_url} onChange={(e) => dat('app_url', e.target.value)} />
         </TheCH>
       </>}
+    </div>
+  )
+}
+
+// ---------- Kết nối Nhanh.vn: số bán 30 ngày lấy thẳng từ phiếu xuất kho (mọi kênh) ----------
+const URL_NHANH = SUPABASE_URL + '/functions/v1/nhanh'
+async function goiHamNhanh(hanhDong) {
+  const { data: { session } } = await sb.auth.getSession()
+  const r = await fetch(URL_NHANH, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: 'Bearer ' + (session?.access_token || '') }, body: JSON.stringify({ hanh_dong: hanhDong }) })
+  const j = await r.json().catch(() => ({}))
+  if (!r.ok) throw new Error(j.loi || 'Không gọi được máy chủ')
+  return j
+}
+function KetNoiNhanh() {
+  const bao = useToast()
+  const [sp, setSp] = useSearchParams()
+  const { data: t, loading, reload } = useAsync(() => rpc('fn_qt_nhanh_trang_thai'), [])
+  const [dang, setDang] = useState('')
+  useEffect(() => {
+    const kq = sp.get('nhanh')
+    if (!kq) return
+    if (kq === 'ok') bao('Đã kết nối Nhanh.vn. Đang lấy số bán 30 ngày, vài phút sau là đủ.')
+    else bao(sp.get('ly_do') || 'Kết nối Nhanh.vn chưa thành công', 'loi')
+    const m = new URLSearchParams(sp); m.delete('nhanh'); m.delete('ly_do'); setSp(m, { replace: true })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!t?.ket_noi || t.so_ngay_xong >= 30) return; const h = setInterval(() => reload(true), 15000); return () => clearInterval(h) }, [t?.ket_noi, t?.so_ngay_xong]) // eslint-disable-line react-hooks/exhaustive-deps
+  const ketNoi = async () => {
+    setDang('kn')
+    try {
+      await rpc('fn_qt_nhanh_bat_dau')
+      window.location.href = 'https://nhanh.vn/oauth?appId=' + t.app_id + '&returnLink=' + encodeURIComponent(URL_NHANH)
+    } catch (e) { bao(e.message, 'loi'); setDang('') }
+  }
+  const dongBo = async () => {
+    setDang('db')
+    try { await goiHamNhanh('dong_bo'); bao('Đang đồng bộ ở nền, số liệu cập nhật trong vài phút'); setTimeout(() => reload(true), 8000) } catch (e) { bao(e.message, 'loi') } finally { setDang('') }
+  }
+  const doiNguon = async (v) => {
+    try { await rpc('fn_qt_nhanh_nguon', { p_nguon: v }); reload(true); bao(v === 'nhanh' ? 'App dùng số bán từ Nhanh.vn' : 'App dùng cột SL BÁN ở Google Sheet') } catch (e) { bao(e.message, 'loi') }
+  }
+  if (loading && !t) return <div className="card"><KhungTai /></div>
+  if (!t) return null
+  const phanTram = Math.min(100, Math.round(((t.so_ngay_xong || 0) / 30) * 100))
+  return (
+    <div className="card cot" style={{ gap: 12 }}>
+      <div className="dau-the">
+        <div><h2>Kết nối Nhanh.vn</h2><p className="nho muted" style={{ marginTop: 2 }}>Số “Đã bán” = tổng phiếu xuất kho 30 ngày gần nhất ở mọi kênh (giao hàng, bán lẻ, bán buôn). Tự cập nhật mỗi 30 phút.</p></div>
+        {t.ket_noi
+          ? <span className="tag" style={{ background: '#E3F5EE', color: '#0E7F63' }}>Đã kết nối</span>
+          : <span className="tag" style={{ background: '#FDF3E3', color: '#8A5410' }}>Chưa kết nối</span>}
+      </div>
+      {!t.app_id && <Bao kieu="loi">Chưa có App ID / Secret Key của app trên open.nhanh.vn.</Bao>}
+      {t.ket_noi && (
+        <div className="cot" style={{ gap: 8 }}>
+          <div className="dong-tt"><span>Doanh nghiệp (Business ID)</span><b>{t.business_id}</b></div>
+          <div className="dong-tt"><span>Kết nối bởi</span><span>{t.ket_noi_boi || '—'}{t.ket_noi_luc ? ' · ' + fmtNgayGio(t.ket_noi_luc) : ''}</span></div>
+          <div className="dong-tt"><span>Quyền hết hạn</span><span>{t.het_han ? fmtNgayGio(t.het_han) : '—'}</span></div>
+          <div className="dong-tt"><span>Dữ liệu 30 ngày</span><span><b>{t.so_ngay_xong}/30 ngày</b> · {Number(t.tong_30_ngay || 0).toLocaleString('vi-VN')} sản phẩm bán · {t.so_ma_khop} mã khớp với app</span></div>
+          <div style={{ height: 8, borderRadius: 99, background: 'var(--soft)', overflow: 'hidden' }}><div style={{ width: phanTram + '%', height: '100%', background: 'var(--nut-chinh)', transition: 'width .4s' }} /></div>
+          <div className="dong-tt"><span>Lần đồng bộ cuối</span><span>{t.lan_dong_bo ? tuongDoi(t.lan_dong_bo) : 'chưa chạy'}</span></div>
+          {t.loi_cuoi && <Bao kieu="loi">Lỗi lần cuối: {t.loi_cuoi}</Bao>}
+          <div className="hang wrap" style={{ gap: 10, alignItems: 'center' }}>
+            <span className="nho muted-2">Số “Đã bán” trên app lấy từ</span>
+            <Chips co="sm" trang ds={[{ v: 'nhanh', t: 'Nhanh.vn' }, { v: 'sheet', t: 'Cột SL BÁN (sheet)' }]} giaTri={t.nguon_so_ban} onChon={doiNguon} />
+          </div>
+          {t.nguon_so_ban === 'sheet' && t.so_ngay_xong < 29 && <p className="nho muted">Khi đủ 30 ngày dữ liệu, app tự chuyển sang số từ Nhanh.vn.</p>}
+        </div>
+      )}
+      <div className="hang wrap" style={{ gap: 8 }}>
+        {t.app_id && <Btn kieu={t.ket_noi ? 'vien' : 'den'} icon={PlugZap} loading={dang === 'kn'} onClick={ketNoi}>{t.ket_noi ? 'Kết nối lại' : 'Kết nối Nhanh.vn'}</Btn>}
+        {t.ket_noi && <Btn kieu="den" icon={RefreshCw} loading={dang === 'db'} onClick={dongBo}>Đồng bộ ngay</Btn>}
+      </div>
+      {!t.ket_noi && t.app_id && <p className="nho muted"><Link2 size={13} style={{ verticalAlign: -2 }} /> Bấm “Kết nối Nhanh.vn” → đăng nhập Nhanh (tài khoản Giám đốc) → chọn doanh nghiệp, cho phép quyền xem đơn hàng / xuất nhập kho / sản phẩm → Đồng ý. Trang tự quay về đây.</p>}
     </div>
   )
 }
