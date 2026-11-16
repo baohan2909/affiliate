@@ -128,8 +128,7 @@ function CauHinh() {
         </div>
       </TheCH>
       <TheCH tieuDe="Trang giới thiệu" moTa="Nội dung trang công khai trước khi đăng nhập." khoa="gioi_thieu" onLuu={() => c.gioi_thieu}>
-        <Field nhan="Tiêu đề lớn" value={c.gioi_thieu.tieu_de} onChange={(e) => dat('gioi_thieu', { ...c.gioi_thieu, tieu_de: e.target.value })} />
-        <TextArea nhan="Mô tả" rows={3} value={c.gioi_thieu.mo_ta} onChange={(e) => dat('gioi_thieu', { ...c.gioi_thieu, mo_ta: e.target.value })} />
+        <Field nhan="Tiêu đề lớn" value={c.gioi_thieu.tieu_de} onChange={(e) => dat('gioi_thieu', { ...c.gioi_thieu, tieu_de: e.target.value })} goiY="Dùng dấu | để xuống dòng. Dòng đầu chữ mảnh, các dòng sau chữ đậm. VD: Cùng Nón Sơn|Phát triển thu nhập|Từ tiếp thị liên kết" />
         <DsDong ds={c.gioi_thieu.quyen_loi} onDoi={(x) => dat('gioi_thieu', { ...c.gioi_thieu, quyen_loi: x })} nutThem="Thêm quyền lợi" moi={() => ({ tieu_de: '', mo_ta: '' })}
           dong={(q, sua) => <div className="luoi-form"><Field kieu="gon" nhan="Quyền lợi" value={q.tieu_de} onChange={(e) => sua({ tieu_de: e.target.value })} /><Field kieu="gon" nhan="Mô tả" value={q.mo_ta} onChange={(e) => sua({ mo_ta: e.target.value })} /></div>} />
       </TheCH>

@@ -17,7 +17,8 @@ function NutZalo({ zalo, sang }) {
 export function LandingPage() {
   const ck = useCongKhai()
   const gt = ck?.gioi_thieu || {}
-  const [tieu1, ...tieu2] = String(gt.tieu_de || 'Cùng Nón Sơn phát triển thu nhập từ tiếp thị liên kết').split(' thu nhập ')
+  // Tiêu đề: dùng | để xuống dòng — dòng đầu chữ mảnh, các dòng sau chữ đậm ánh hồng–champagne
+  const dong = String(gt.tieu_de || 'Cùng Nón Sơn|Phát triển thu nhập|Từ tiếp thị liên kết').split('|').map((x) => x.trim()).filter(Boolean)
   return (
     <div className="lp">
       <section className="lp-hero">
@@ -33,7 +34,8 @@ export function LandingPage() {
             <div>
               <p className="lp-eyebrow"><i />Cộng đồng Affiliate chính thức<i /></p>
               <h1 className="lp-tieu">
-                {tieu2.length ? <><span className="mong">{tieu1}</span><span className="dam">thu nhập {tieu2.join(' thu nhập ')}</span></> : <span className="dam">{tieu1}</span>}
+                {dong.length > 1 && <span className="mong">{dong[0]}</span>}
+                {(dong.length > 1 ? dong.slice(1) : dong).map((x, i) => <span key={i} className="dam">{x}</span>)}
               </h1>
               <div className="lp-vach" aria-hidden="true"><i /><b /><i /></div>
               <div className="nut">
