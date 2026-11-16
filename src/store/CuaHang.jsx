@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CalendarDays, Camera, CheckCheck, Clock, DoorOpen, Eye, EyeOff, KeyRound, LogOut, QrCode, Search, Store, UserPlus, UserX } from 'lucide-react'
+import { CalendarDays, Camera, CheckCheck, Clock, DoorOpen, Download, Eye, EyeOff, KeyRound, LogOut, QrCode, Search, Store, UserPlus, UserX } from 'lucide-react'
+import { CaiDatApp, useManifest } from '../components/caidat'
 import { useAuth } from '../components/auth'
 import { Bao, Brand, Btn, Empty, Field, IconBtn, KhungTai, LoiTai, Md, Modal, Nhan, Segment, Spinner, TextArea, useToast, useXacNhan } from '../components/ui'
 import { useAsync } from '../lib/hooks'
@@ -211,6 +212,7 @@ function CongCH() {
         <div className="hang" style={{ gap: 10 }}>
           <Brand phu="CỔNG CỬA HÀNG" />
           <span style={{ flex: 1 }} />
+          <CaiDatApp ten="Cổng cửa hàng" render={(bam) => <IconBtn icon={Download} nhan="Cài ứng dụng cửa hàng" co="sm" kieu="kinh" onClick={bam} />} />
           <IconBtn icon={KeyRound} nhan="Đổi mật khẩu" co="sm" kieu="kinh" onClick={() => setMk(true)} />
           <IconBtn icon={LogOut} nhan="Đăng xuất" co="sm" kieu="kinh" onClick={thoat} />
         </div>
@@ -239,6 +241,7 @@ function CongCH() {
 
 export default function CongCuaHang() {
   const { dangKiem, ns, tv, thoat } = useAuth()
+  useManifest('manifest-cuahang.webmanifest')
   useEffect(() => { document.title = 'Cổng cửa hàng · Nón Sơn Affiliate Hub' }, [])
   if (dangKiem) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Spinner size={30} /></div>
   if (!ns && !tv) return <DangNhapCH />

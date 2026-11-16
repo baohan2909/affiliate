@@ -7,6 +7,7 @@ import { rpc } from '../lib/api'
 import { fmtNgay, fmtNgayThu, fmtSo, thuCua } from '../lib/format'
 import { GIAI_DOAN, TT_LICH } from '../lib/hang'
 import { useQt } from './Cong'
+import { BangDL } from './chung'
 
 function BieuDoNgay({ ds }) {
   const [tro, setTro] = useState(null)
@@ -60,19 +61,25 @@ export default function TongQuan() {
           <div className="card">
             <div className="dau-the"><h2>Lịch quay sắp tới</h2><Link to="/quantri/lich-quay" className="lien-ket nho">Tất cả <ArrowRight size={14} /></Link></div>
             {d.lich_sap_toi.length === 0 ? <p className="nho muted">Chưa có lịch sắp tới.</p> : (
-              <div className="bang-cuon"><table className="bang"><thead><tr><th>Mã</th><th>Thời gian</th><th>Thành viên</th><th>Cửa hàng</th><th className="c-giua">Trạng thái</th></tr></thead>
-                <tbody>{d.lich_sap_toi.map((l) => (
-                  <tr key={l.id}><td><b>{l.ma}</b></td><td>{l.gio} · {fmtNgayThu(l.ngay)}</td><td>{l.thanh_vien}</td><td className="cat" style={{ maxWidth: 220 }}>{l.cua_hang}</td><td className="c-giua"><Nhan bang={TT_LICH} ma={l.trang_thai} /></td></tr>
-                ))}</tbody></table></div>
+              <BangDL phang demDong={false} stt={false} ds={d.lich_sap_toi} macDinh={(l) => l.ngay + l.gio} chieu="tang" cot={[
+                { k: 'ma', t: 'Mã', o: (l) => <b>{l.ma}</b> },
+                { k: 'ngay', t: 'Thời gian', sx: (l) => l.ngay + l.gio, o: (l) => `${l.gio} · ${fmtNgayThu(l.ngay)}` },
+                { k: 'thanh_vien', t: 'Thành viên', chinh: true },
+                { k: 'cua_hang', t: 'Cửa hàng' },
+                { k: 'trang_thai', t: 'Trạng thái', canh: 'giua', o: (l) => <Nhan bang={TT_LICH} ma={l.trang_thai} /> }
+              ]} />
             )}
           </div>
           <div className="card">
             <div className="dau-the"><h2>Chiến dịch gần đây</h2><Link to="/quantri/chien-dich" className="lien-ket nho">Quản lý <ArrowRight size={14} /></Link></div>
             {d.chien_dich.length === 0 ? <p className="nho muted">Chưa có chiến dịch công bố.</p> : (
-              <div className="bang-cuon"><table className="bang"><thead><tr><th>Chiến dịch</th><th className="c-giua">Giai đoạn</th><th className="c-giua">Tham gia</th><th className="c-giua">Chờ duyệt</th><th className="c-giua">Bài nộp</th></tr></thead>
-                <tbody>{d.chien_dich.map((c) => (
-                  <tr key={c.id}><td className="cat" style={{ maxWidth: 280 }}><b>{c.ten}</b></td><td className="c-giua"><Nhan bang={GIAI_DOAN} ma={c.giai_doan} /></td><td className="c-giua">{c.tham_gia}</td><td className="c-giua">{c.cho}</td><td className="c-giua">{c.bai}</td></tr>
-                ))}</tbody></table></div>
+              <BangDL phang demDong={false} stt={false} ds={d.chien_dich} macDinh={() => 0} cot={[
+                { k: 'ten', t: 'Chiến dịch', o: (c) => <b>{c.ten}</b> },
+                { k: 'giai_doan', t: 'Giai đoạn', canh: 'giua', o: (c) => <Nhan bang={GIAI_DOAN} ma={c.giai_doan} /> },
+                { k: 'tham_gia', t: 'Tham gia', canh: 'giua' },
+                { k: 'cho', t: 'Chờ duyệt', canh: 'giua' },
+                { k: 'bai', t: 'Bài nộp', canh: 'giua' }
+              ]} />
             )}
           </div>
         </section>

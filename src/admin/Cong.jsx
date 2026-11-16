@@ -2,8 +2,9 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Users, Layers, ShoppingBag, Megaphone, Gift, CalendarDays, Store, BookOpen, Bell, LifeBuoy, Settings,
-  LogOut, PanelLeftClose, PanelLeftOpen, Menu, KeyRound, Eye, EyeOff, ArrowRight
+  LogOut, PanelLeftClose, PanelLeftOpen, Menu, KeyRound, Eye, EyeOff, ArrowRight, MonitorDown
 } from 'lucide-react'
+import { CaiDatApp, useManifest } from '../components/caidat'
 import { useAuth } from '../components/auth'
 import { Brand, Btn, Field, IconBtn, Modal, NonIcon, Spinner, useToast } from '../components/ui'
 import { useLS } from '../lib/hooks'
@@ -27,13 +28,13 @@ const MUC = [
   { to: 'lich-quay', ten: 'Lịch quay chụp', ic: CalendarDays, dem: (c) => c.lich },
   { to: 'chien-dich', ten: 'Chiến dịch', ic: Megaphone, dem: (c) => (c.dang_ky || 0) + (c.bai_nop || 0) },
   { to: 'ho-tro', ten: 'Hỗ trợ', ic: LifeBuoy, dem: (c) => c.ho_tro },
+  { to: 'san-pham', ten: 'Sản phẩm', ic: ShoppingBag, nhom: 'Nội dung' },
+  { to: 'tai-nguyen', ten: 'Tài nguyên', ic: BookOpen },
+  { to: 'cua-hang', ten: 'Cửa hàng', ic: Store, dem: (c) => c.khach_khong_lich },
   { to: 'thanh-vien', ten: 'Thành viên', ic: Users, nhom: 'Cộng đồng' },
   { to: 'nhom-cap-do', ten: 'Nhóm & cấp độ', ic: Layers },
   { to: 'uu-dai', ten: 'Ưu đãi', ic: Gift },
   { to: 'thong-bao', ten: 'Thông báo', ic: Bell },
-  { to: 'san-pham', ten: 'Sản phẩm', ic: ShoppingBag, nhom: 'Nội dung' },
-  { to: 'tai-nguyen', ten: 'Tài nguyên', ic: BookOpen },
-  { to: 'cua-hang', ten: 'Cửa hàng', ic: Store, dem: (c) => c.khach_khong_lich },
   { to: 'he-thong', ten: 'Hệ thống', ic: Settings, nhom: 'Quản trị', dem: (c, ns) => (ns.vai_tro === 'quan_tri' ? c.thu_loi : 0) }
 ]
 const NAV_DUOI = ['', 'lich-quay', 'chien-dich', 'thanh-vien']
@@ -135,6 +136,9 @@ function Khung({ ns, children }) {
                 </NavLink>
               </div>
             ))}
+            <CaiDatApp ten="Quản trị Affiliate Hub" render={(bam) => (
+              <button type="button" className="nav-item cai-app" title="Cài ứng dụng quản trị" onClick={bam}><MonitorDown size={19} strokeWidth={2} /><span className="an-gon">Cài ứng dụng</span></button>
+            )} />
           </div>
           <div className="sb-user">
             <span className="av">{chuCai(ns.ho_ten)}</span>
@@ -172,6 +176,7 @@ function Khung({ ns, children }) {
                 {soDem(m) > 0 ? <span className="tag" style={{ background: '#FDE6F1', color: '#A3004F' }}>{soDem(m)}</span> : <ArrowRight size={16} className="muted" />}
               </Link>
             ))}
+            <CaiDatApp ten="Quản trị Affiliate Hub" render={(bam) => <Btn kieu="den" icon={MonitorDown} className="rong" style={{ marginTop: 8 }} onClick={bam}>Cài ứng dụng quản trị</Btn>} />
             <div className="hang" style={{ gap: 8, marginTop: 8 }}>
               <Btn kieu="vien" className="gian" icon={KeyRound} onClick={() => { setMoMenu(false); setMoMk(true) }}>Đổi mật khẩu</Btn>
               <Btn kieu="trong" className="gian" icon={LogOut} onClick={thoat}>Đăng xuất</Btn>
@@ -186,6 +191,7 @@ function Khung({ ns, children }) {
 
 export default function CongQuanTri() {
   const { dangKiem, ns, tv, thoat } = useAuth()
+  useManifest('manifest-quantri.webmanifest')
   useEffect(() => { document.title = 'Quản trị · Nón Sơn Affiliate Hub' }, [])
   if (dangKiem) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Spinner size={30} /></div>
   if (!ns && !tv) return <DangNhapNS />

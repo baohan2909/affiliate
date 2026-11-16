@@ -309,9 +309,11 @@ export function CuaHang() {
       {mo && <SuaCH c={mo} macDinh={data?.mac_dinh || {}} laQT={laQT} dong={() => setMo(null)} xong={(giu) => { reload(true); if (!giu) setMo(null) }} />}
       <Modal mo={!!capKq} dong={() => setCapKq(null)} rong tieuDe="Tài khoản cửa hàng vừa cấp" moTa="Mật khẩu chỉ hiển thị lần này. Tải CSV và gửi cho từng cửa hàng."
         chan={<><Btn kieu="vien" icon={Download} onClick={() => taiCSV('tai-khoan-cua-hang-' + homNay() + '.csv', capKq.map((x) => ({ 'Mã cửa hàng': x.ma, 'Tên': x.ten, 'Mật khẩu': x.mat_khau || '', 'Lỗi': x.loi || '', 'Đăng nhập tại': location.origin + import.meta.env.BASE_URL + 'cuahang' })))}>Tải CSV</Btn><Btn kieu="den" onClick={() => setCapKq(null)}>Xong</Btn></>}>
-        {capKq && <div className="bang-cuon"><table className="bang"><thead><tr><th>Mã</th><th>Cửa hàng</th><th>Mật khẩu</th></tr></thead><tbody>
-          {capKq.map((x) => <tr key={x.ma}><td><b>{x.ma}</b></td><td className="cat" style={{ maxWidth: 260 }}>{x.ten}</td><td>{x.loi ? <span style={{ color: 'var(--err)' }}>{x.loi}</span> : <code style={{ fontSize: 14 }}>{x.mat_khau}</code>}</td></tr>)}
-        </tbody></table></div>}
+        {capKq && <BangDL phang demDong={false} stt={false} khoa="ma" ds={capKq} macDinh="ma" chieu="tang" cot={[
+          { k: 'ma', t: 'Mã', o: (x) => <b>{x.ma}</b> },
+          { k: 'ten', t: 'Cửa hàng', chinh: true },
+          { k: 'mat_khau', t: 'Mật khẩu', sx: false, co: false, o: (x) => (x.loi ? <span style={{ color: 'var(--err)' }}>{x.loi}</span> : <code style={{ fontSize: 14 }}>{x.mat_khau}</code>) }
+        ]} />}
       </Modal>
     </>
   )

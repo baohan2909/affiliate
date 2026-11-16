@@ -137,10 +137,15 @@ function NhapSP({ xong }) {
             <Field nhan="Nguồn dữ liệu" batBuoc value={nguon} onChange={(e) => setNguon(e.target.value)} placeholder="VD: Báo cáo Shopee Affiliate 01–15/11" />
             <Field nhan="Dữ liệu tính đến ngày" type="date" value={den} onChange={(e) => setDen(e.target.value)} />
           </div>
-          <div className="bang-khung"><div className="bang-cuon"><table className="bang">
-            <thead><tr><th className="stt">#</th><th>Mã</th><th>Tên</th><th className="c-giua">Giá</th><th className="c-giua">Hoa hồng</th><th className="c-giua">Lượt bán</th><th className="c-giua">Nhãn</th></tr></thead>
-            <tbody>{dong.slice(0, 12).map((r, i) => <tr key={i}><td className="stt">{i + 1}</td><td><b>{r.ma}</b></td><td className="cat" style={{ maxWidth: 280 }}>{r.ten || <span className="muted">(giữ nguyên)</span>}</td><td className="c-giua">{r.gia || ''}</td><td className="c-giua">{r.hoa_hong || ''}</td><td className="c-giua">{r.luot_ban || ''}</td><td className="c-giua">{r.nhan || ''}</td></tr>)}</tbody>
-          </table></div>{dong.length > 12 && <div className="chan-bang">… và {dong.length - 12} dòng nữa</div>}</div>
+          <BangDL ds={dong.slice(0, 12).map((r, i) => ({ ...r, _i: i }))} khoa="_i" macDinh="_i" chieu="tang" demDong={false}
+            chan={dong.length > 12 ? <span>… và {dong.length - 12} dòng nữa</span> : null} cot={[
+              { k: 'ma', t: 'Mã', sx: false, o: (r) => <b>{r.ma}</b> },
+              { k: 'ten', t: 'Tên', sx: false, chinh: true, o: (r) => r.ten || <span className="muted">(giữ nguyên)</span> },
+              { k: 'gia', t: 'Giá', sx: false, canh: 'giua' },
+              { k: 'hoa_hong', t: 'Hoa hồng', sx: false, canh: 'giua' },
+              { k: 'luot_ban', t: 'Lượt bán', sx: false, canh: 'giua' },
+              { k: 'nhan', t: 'Nhãn', sx: false, canh: 'giua' }
+            ]} />
           <div><Btn kieu="den" co="lg" icon={Save} loading={dang} onClick={gui}>Nhập {dong.length} dòng</Btn></div>
         </>
       )}
@@ -173,24 +178,19 @@ function QuanLyTop({ ds, top, nguonTop, xong }) {
         <Field nhan="Dữ liệu cập nhật đến" type="date" value={den[nhan] || ''} onChange={(e) => setDen({ ...den, [nhan]: e.target.value })} />
       </div>
       <div style={{ maxWidth: 520 }}><Chon kieu="tron" tim goiY="+ Thêm sản phẩm vào danh sách" giaTri="" ds={ds.filter((s) => !cur.includes(s.id)).map((s) => ({ v: s.id, t: s.ten, phu: s.ma }))} onChon={(v) => setIds({ ...ids, [nhan]: [...cur, v] })} /></div>
-      <div className="bang-khung"><div className="bang-cuon"><table className="bang">
-        <thead><tr><th className="stt">Hạng</th><th>Sản phẩm</th><th className="c-giua">Giá</th><th className="c-giua">Lượt bán</th><th className="c-giua">Hiển thị</th><th className="c-phai">Sắp xếp</th></tr></thead>
-        <tbody>
-          {cur.length === 0 && <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--muted)', padding: 24 }}>Chưa có sản phẩm trong {NHAN_TOP[nhan].ten}</td></tr>}
-          {cur.map((id, i) => { const s = sp(id); return s && (
-            <tr key={id}>
-              <td className="stt"><b>{i + 1}</b></td>
-              <td><div className="ten-o"><span className="anh-nho"><Anh src={s.anh} alt="" /></span><div className="gian"><b>{s.ten}</b><span>{s.ma}</span></div></div></td>
-              <td className="c-giua">{fmtTien(s.gia)}</td><td className="c-giua">{s.luot_ban != null ? fmtSo(s.luot_ban) : ''}</td>
-              <td className="c-giua">{s.hien ? 'Có' : <span style={{ color: 'var(--err)' }}>Đang ẩn</span>}</td>
-              <td className="c-phai"><span className="hang" style={{ gap: 4, justifyContent: 'flex-end' }}>
-                <button type="button" className="icon-btn xs mem" disabled={i === 0} onClick={() => doiCho(i, -1)} aria-label="Lên"><ArrowUp size={14} /></button>
-                <button type="button" className="icon-btn xs mem" disabled={i === cur.length - 1} onClick={() => doiCho(i, 1)} aria-label="Xuống"><ArrowDown size={14} /></button>
-                <button type="button" className="icon-btn xs mem" onClick={() => setIds({ ...ids, [nhan]: cur.filter((x) => x !== id) })} aria-label="Bỏ"><X size={14} /></button>
-              </span></td>
-            </tr>) })}
-        </tbody>
-      </table></div></div>
+      <BangDL ds={cur.map((id, i) => sp(id) && { ...sp(id), _i: i }).filter(Boolean)} macDinh="_i" chieu="tang" stt={false} demDong={false} trong={`Chưa có sản phẩm trong ${NHAN_TOP[nhan].ten}`} cot={[
+        { k: '_i', t: 'Hạng', sx: false, canh: 'giua', o: (s) => <b>{s._i + 1}</b> },
+        { k: 'ten', t: 'Sản phẩm', sx: false, chinh: true, o: (s) => <div className="ten-o"><span className="anh-nho"><Anh src={s.anh} alt="" /></span><div className="gian"><b>{s.ten}</b><span>{s.ma}</span></div></div> },
+        { k: 'gia', t: 'Giá', sx: false, canh: 'giua', o: (s) => fmtTien(s.gia) },
+        { k: 'luot_ban', t: 'Lượt bán', sx: false, canh: 'giua', o: (s) => (s.luot_ban != null ? fmtSo(s.luot_ban) : '') },
+        { k: 'hien', t: 'Hiển thị', sx: false, canh: 'giua', o: (s) => (s.hien ? 'Có' : <span style={{ color: 'var(--err)' }}>Đang ẩn</span>) },
+        { k: 'tac', t: '', sx: false, canh: 'phai', o: (s) => (
+          <span className="hang" style={{ gap: 4, justifyContent: 'flex-end' }}>
+            <button type="button" className="icon-btn xs mem" disabled={s._i === 0} onClick={() => doiCho(s._i, -1)} aria-label="Lên"><ArrowUp size={14} /></button>
+            <button type="button" className="icon-btn xs mem" disabled={s._i === cur.length - 1} onClick={() => doiCho(s._i, 1)} aria-label="Xuống"><ArrowDown size={14} /></button>
+            <button type="button" className="icon-btn xs mem" onClick={() => setIds({ ...ids, [nhan]: cur.filter((x) => x !== s.id) })} aria-label="Bỏ"><X size={14} /></button>
+          </span>) }
+      ]} />
       <div><Btn kieu="den" icon={Save} loading={dang} onClick={luu}>Lưu {NHAN_TOP[nhan].ten}</Btn></div>
     </div>
   )
@@ -242,7 +242,6 @@ export default function SanPham() {
               {dsDm.length > 0 && <Chon kieu="tron" ds={[{ v: '', t: 'Mọi danh mục' }, ...dsDm.map((x) => ({ v: x, t: x }))]} giaTri={dm} onChon={setDm} />}
               <Chips co="sm" trang ds={[{ v: '', t: 'Tất cả' }, { v: 'true', t: 'Đang hiện' }, { v: 'false', t: 'Đang ẩn' }]} giaTri={hien} onChon={setHien} />
             </div>
-            {ds.some((s) => s.nguon === 'sheet_shopee') && <Bao kieu="xanh">Sản phẩm đồng bộ tự động từ Google Sheet <b>THÔNG TIN SẢN PHẨM AFFILIATE - SHOPEE GỐC</b>. Giá, % hoa hồng, chiết khấu, trạng thái và thứ tự (STT) sửa tại sheet; ảnh, điểm nổi bật, mô tả, ảnh phụ có thể bổ sung tại đây.</Bao>}
             <BangDL cot={cot} ds={loc} macDinh="thu_tu" chieu="tang" onBam={(s) => setSua(s)} trong="Chưa có sản phẩm. Thêm tay hoặc nhập từ Excel." />
           </>}
           {tab === 'top' && <div className="card"><QuanLyTop key={data.top.length + ':' + ds.length} ds={ds} top={data.top} nguonTop={data.nguon_top} xong={() => reload(true)} /></div>}

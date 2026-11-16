@@ -1,8 +1,8 @@
 // Thành phần dùng chung cho trang quản trị
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { ImagePlus, Plus, Trash2, Users, X, Search } from 'lucide-react'
-import { Btn, Chips, Chon, CotSX, Field, IconBtn, ONhapGio, ONhapNgay, Spinner, useToast } from '../components/ui'
-import { useSapXep, useDebounced } from '../lib/hooks'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { ArrowDown, ArrowUp, ImagePlus, Plus, Trash2, Users, X, Search } from 'lucide-react'
+import { Btn, Chips, Chon, Field, IconBtn, ONhapGio, ONhapNgay, Spinner, useToast } from '../components/ui'
+import { useDebounced } from '../lib/hooks'
 import { rpc, taiAnhLen } from '../lib/api'
 import { choInputGio, tuInputGio, khop, fmtSo } from '../lib/format'
 import { KINH_NGHIEM, KIEU_DOI_TUONG } from '../lib/hang'
@@ -22,47 +22,204 @@ export function useTuyChon() {
 export function lamMoiTuyChon() { boNho = null; dangTai = null }
 
 // ---------- Bảng dữ liệu: tiêu đề bấm để sắp xếp, cột số căn giữa, ô 1 dòng ----------
-// cot: [{ k, t, canh: 'giua'|'phai', sx: false|key|fn, o: (row) => node, w }]
-export function BangDL({ cot, ds, macDinh, chieu = 'giam', onBam, chon, setChon, khoa = 'id', trong = 'Không có dữ liệu', gioiHan = 200, stt = true, chan }) {
-  const sx = useSapXep(ds, macDinh, chieu)
+// cot: [{ k, t, canh: 'giua'|'phai', sx: false|key|fn, o: (row) => node, chinh: true (cột chính khi xem dạng thẻ), co: false (không cho thu) }]
+// Tự vừa khung, KHÔNG kéo ngang, KHÔNG mất cột:
+//  1) đủ chỗ → bảng thường;  2) thiếu chỗ → thu cột chữ (cắt "…", rê chuột xem đủ) + tiêu đề xuống dòng;
+//  3) vẫn thiếu (máy nhỏ) → dạng thẻ, mỗi dòng 1 thẻ hiện đủ mọi cột.
+const DEM = 24
+const DEM_EP = 16
+const NUT_SX = 16
+let butDo = null
+function tuDaiNhat(chu) { // bề rộng từ dài nhất của tiêu đề (in hoa · 11px · đậm 700 · giãn .06em)
+  if (!chu || typeof chu !== 'string') return 0
+  if (!butDo) { butDo = document.createElement('canvas').getContext('2d') }
+  butDo.font = `700 11px ${getComputedStyle(document.body).fontFamily}`
+  return Math.ceil(Math.max(...chu.toUpperCase().split(/\s+|(?<=\/)/).map((w) => butDo.measureText(w).width + w.length * 0.66))) + 2
+}
+const tong = (a) => a.reduce((s, x) => s + x, 0)
+
+export function BangDL({ cot, ds, macDinh, chieu = 'giam', onBam, chon, setChon, khoa = 'id', trong = 'Không có dữ liệu', gioiHan = 200, stt = true, chan, phang, demDong = true }) {
+  // Sắp xếp theo khóa cột (ổn định giữa các lần vẽ, kể cả cột sắp xếp bằng hàm)
+  const [sxK, setSxK] = useState(() => (typeof macDinh === 'string' && cot.some((c) => c.k === macDinh) ? macDinh : null))
+  const [sxC, setSxC] = useState(chieu)
+  const hamSX = (k) => {
+    if (k == null) return typeof macDinh === 'function' ? macDinh : (r) => r?.[macDinh]
+    const c = cot.find((x) => x.k === k)
+    return typeof c?.sx === 'function' ? c.sx : (r) => r?.[c?.sx || k]
+  }
+  const fSX = hamSX(sxK)
+  const daXep = [...(ds || [])].sort((a, b) => {
+    const x = fSX(a), y = fSX(b)
+    if (x == null && y == null) return 0
+    if (x == null) return 1
+    if (y == null) return -1
+    const r = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'vi', { numeric: true })
+    return sxC === 'tang' ? r : -r
+  })
+  const bamSX = (k) => { if (k === sxK) setSxC(sxC === 'tang' ? 'giam' : 'tang'); else { setSxK(k); setSxC('tang') } }
+
   const [n, setN] = useState(gioiHan)
   useEffect(() => setN(gioiHan), [ds, gioiHan])
-  const hien = sx.ds.slice(0, n)
+  const hien = daXep.slice(0, n)
   const tatCa = chon && hien.length > 0 && hien.every((r) => chon.has(r[khoa]))
   const batChon = (r) => { const m = new Set(chon); m.has(r[khoa]) ? m.delete(r[khoa]) : m.add(r[khoa]); setChon(m) }
   const batTatCa = () => { const m = new Set(chon); if (tatCa) hien.forEach((r) => m.delete(r[khoa])); else hien.forEach((r) => m.add(r[khoa])); setChon(m) }
+  const gt = (c, r) => (c.o ? c.o(r) : r[c.k] ?? '')
+  const chinh = cot.find((c) => c.chinh) || cot.find((c) => !c.canh && c.t) || cot[0]
+
+  // ---- Đo & chọn cách hiển thị ----
+  const khung = useRef(null)
+  const bang = useRef(null)
+  const [W, setW] = useState(0)
+  const [doDac, setDoDac] = useState(null) // { nd: [bề rộng nội dung lớn nhất mỗi cột], nhan: [bề rộng tiêu đề] }
+  const khoaCot = cot.map((c) => c.k).join('|')
+  useLayoutEffect(() => { setDoDac(null) }, [ds, n, khoaCot, !!chon, stt]) // eslint-disable-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => {
+    if (doDac || !bang.current || !khung.current) return
+    const t = bang.current
+    const ths = [...t.tHead.rows[0].cells]
+    const nhan = ths.map((th) => { const e = th.querySelector('.do-nhan'); return e ? Math.ceil(e.getBoundingClientRect().width) : 0 })
+    const nd = ths.map(() => 0)
+    for (const tr of t.tBodies[0].rows) {
+      if (tr.cells.length !== ths.length) continue
+      ;[...tr.cells].forEach((td, i) => { const e = td.firstElementChild; if (e) nd[i] = Math.max(nd[i], Math.ceil(e.getBoundingClientRect().width)) })
+    }
+    const cs = getComputedStyle(khung.current)
+    setW(Math.floor(khung.current.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)))
+    setDoDac({ nhan, nd })
+  }, [doDac])
+  useEffect(() => {
+    const el = khung.current
+    if (!el) return
+    let truoc = el.getBoundingClientRect().width
+    const ro = new ResizeObserver(([e]) => {
+      const w = Math.floor(e.contentRect.width)
+      if (truoc < 1 && w > 0) setDoDac(null) // vừa hiện ra (trước đó bị ẩn) → đo lại
+      truoc = w
+      setW(w)
+    })
+    ro.observe(el)
+    document.fonts?.ready?.then(() => setDoDac(null))
+    return () => ro.disconnect()
+  }, [])
+
+  const cols = [...(chon ? [{ loai: 'chon', k: '_chon' }] : []), ...(stt ? [{ loai: 'stt', k: '_stt' }] : []), ...cot]
+  const coSX = (c) => !c.loai && c.sx !== false && !!c.t
+  const muiTen = (c) => (coSX(c) && sxK === c.k ? NUT_SX : 0) // chỗ cho mũi tên ở cột đang sắp xếp
+  const thuDuoc = (c) => !c.loai && !c.canh && !!c.t && c.co !== false
+  let che = 'do'
+  let rong = null
+  if (doDac && W > 0) {
+    const noi = (c, i) => Math.max(doDac.nhan[i] + muiTen(c), doDac.nd[i])
+    const tuNhien = cols.map((c, i) => noi(c, i) + DEM)
+    if (tong(tuNhien) <= W) che = 'vua'
+    else {
+      const toiDa = cols.map((c, i) => noi(c, i) + DEM_EP)
+      const toiThieu = cols.map((c, i) => {
+        if (c.loai) return toiDa[i]
+        const tieuDe = tuDaiNhat(c.t) + muiTen(c)
+        // chữ ngắn (SĐT, mã, tỉnh…) giữ nguyên; chữ dài được thu, cột chính tối thiểu 180px
+        const nd = doDac.nd[i]
+        const noiDung = thuDuoc(c) && nd > 100 ? Math.min(nd, Math.max(c === chinh ? 180 : 100, Math.round(nd * 0.55))) : nd
+        return Math.min(toiDa[i], Math.max(tieuDe, noiDung) + DEM_EP)
+      })
+      const A = tong(toiDa), B = tong(toiThieu)
+      if (B > W) che = 'the'
+      else {
+        che = 'ep'
+        rong = A <= W ? toiDa : toiDa.map((x, i) => Math.floor(x - ((x - toiThieu[i]) * (A - W)) / (A - B)))
+      }
+    }
+  }
+  // Ô bị cắt "…": rê chuột hiện đủ nội dung
+  useLayoutEffect(() => {
+    if (che !== 'ep' || !bang.current) return
+    bang.current.querySelectorAll('td.co > .o').forEach((o) => { o.title = o.scrollWidth > o.clientWidth + 1 ? o.textContent.trim() : '' })
+  })
+
+  const oChon = (r) => <input type="checkbox" aria-label="Chọn" checked={chon.has(r[khoa])} onChange={() => batChon(r)} onClick={(e) => e.stopPropagation()} style={{ accentColor: '#E0157E', width: 16, height: 16 }} />
+  const dsSX = cot.filter(coSX).map((c) => ({ v: c.k, t: c.t }))
+
   return (
-    <div className="bang-khung">
-      <div className="bang-cuon">
-        <table className="bang">
-          <thead>
-            <tr>
-              {chon && <th className="stt"><input type="checkbox" aria-label="Chọn tất cả" checked={tatCa} onChange={batTatCa} style={{ accentColor: '#E0157E', width: 16, height: 16 }} /></th>}
-              {stt && <th className="stt">#</th>}
-              {cot.map((c) => (c.sx === false
-                ? <th key={c.k} className={c.canh ? 'c-' + c.canh : ''} style={c.w ? { width: c.w } : undefined}>{c.t}</th>
-                : <CotSX key={c.k} ten={c.t} cot={c.sx || c.k} sx={sx} canh={c.canh} />))}
-            </tr>
-          </thead>
-          <tbody>
-            {hien.length === 0 && <tr><td colSpan={cot.length + (chon ? 1 : 0) + (stt ? 1 : 0)} style={{ textAlign: 'center', color: 'var(--muted)', padding: 28 }}>{trong}</td></tr>}
-            {hien.map((r, i) => (
-              <tr key={r[khoa]} className={(onBam ? 'bam ' : '') + (chon?.has(r[khoa]) ? 'chon' : '')} onClick={onBam ? () => onBam(r) : undefined}>
-                {chon && <td className="stt" onClick={(e) => e.stopPropagation()}><input type="checkbox" aria-label="Chọn" checked={chon.has(r[khoa])} onChange={() => batChon(r)} style={{ accentColor: '#E0157E', width: 16, height: 16 }} /></td>}
-                {stt && <td className="stt">{i + 1}</td>}
-                {cot.map((c) => <td key={c.k} className={c.canh ? 'c-' + c.canh : ''}>{c.o ? c.o(r) : r[c.k] ?? ''}</td>)}
+    <div className={'bang-khung' + (phang ? ' phang' : '')} ref={khung}>
+      {che === 'the' ? (
+        <div className="bang-the">
+          {(chon || dsSX.length > 0) && hien.length > 0 && (
+            <div className="the-cong-cu">
+              {chon && <label className="the-chon-het"><input type="checkbox" checked={tatCa} onChange={batTatCa} style={{ accentColor: '#E0157E', width: 16, height: 16 }} />Chọn tất cả</label>}
+              {dsSX.length > 0 && (
+                <div className="hang" style={{ gap: 6, marginLeft: 'auto' }}>
+                  <span className="nho muted">Sắp xếp</span>
+                  <Chon kieu="tron" giaTri={sxK ?? ''} onChon={(v) => { setSxK(v || null); }} ds={[{ v: '', t: 'Mặc định' }, ...dsSX]} />
+                  <IconBtn icon={sxC === 'tang' ? ArrowUp : ArrowDown} nhan={sxC === 'tang' ? 'Tăng dần' : 'Giảm dần'} co="sm" kieu="mem" onClick={() => setSxC(sxC === 'tang' ? 'giam' : 'tang')} />
+                </div>
+              )}
+            </div>
+          )}
+          {hien.length === 0 && <div className="the-trong">{trong}</div>}
+          {hien.map((r, i) => {
+            const tac = cot.filter((c) => !c.t && c !== chinh)
+            const khac = cot.filter((c) => c !== chinh && c.t)
+            return (
+              <div key={r[khoa]} className={'the-dong' + (onBam ? ' bam' : '') + (chon?.has(r[khoa]) ? ' chon' : '')} onClick={onBam ? () => onBam(r) : undefined}>
+                <div className="the-chinh">
+                  {chon && oChon(r)}
+                  <div className="gian" style={{ minWidth: 0 }}>{gt(chinh, r)}</div>
+                  {stt && <span className="the-stt">#{i + 1}</span>}
+                </div>
+                {khac.length > 0 && (
+                  <div className="the-luoi">
+                    {khac.map((c) => <div key={c.k} className="the-o"><span className="the-nhan">{c.t}</span><div className="the-gt">{gt(c, r)}</div></div>)}
+                  </div>
+                )}
+                {tac.some((c) => gt(c, r)) && <div className="the-tac" onClick={(e) => e.stopPropagation()}>{tac.map((c) => <span key={c.k}>{gt(c, r)}</span>)}</div>}
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <div className="bang-cuon">
+          <table ref={bang} className={'bang' + (che === 'do' ? ' dang-do' : che === 'ep' ? ' ep' : '')}>
+            {rong && <colgroup>{rong.map((w, i) => <col key={cols[i].k} style={{ width: w }} />)}</colgroup>}
+            <thead>
+              <tr>
+                {chon && <th className="stt"><input type="checkbox" aria-label="Chọn tất cả" checked={tatCa} onChange={batTatCa} style={{ accentColor: '#E0157E', width: 16, height: 16 }} /></th>}
+                {stt && <th className="stt"><span className="do-nhan">#</span></th>}
+                {cot.map((c) => {
+                  const lop = c.canh ? 'c-' + c.canh : ''
+                  const nhanTD = typeof c.t === 'string' ? c.t.replace(/\//g, '/\u200B') : c.t
+                  if (!coSX(c)) return <th key={c.k} className={lop}><span className="do-nhan">{nhanTD}</span></th>
+                  const on = sxK === c.k
+                  return (
+                    <th key={c.k} className={lop} aria-sort={on ? (sxC === 'tang' ? 'ascending' : 'descending') : 'none'}>
+                      <button type="button" className={'th-nut' + (on ? ' on' : '')} onClick={() => bamSX(c.k)}>
+                        <span className="do-nhan">{nhanTD}</span>{on ? (sxC === 'tang' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : null}
+                      </button>
+                    </th>
+                  )
+                })}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="chan-bang">
-        <span>{fmtSo(ds.length)} dòng{hien.length < sx.ds.length ? ` · đang hiện ${fmtSo(hien.length)}` : ''}</span>
+            </thead>
+            <tbody>
+              {hien.length === 0 && <tr><td colSpan={cols.length} style={{ textAlign: 'center', color: 'var(--muted)', padding: 28 }}>{trong}</td></tr>}
+              {hien.map((r, i) => (
+                <tr key={r[khoa]} className={(onBam ? 'bam ' : '') + (chon?.has(r[khoa]) ? 'chon' : '')} onClick={onBam ? () => onBam(r) : undefined}>
+                  {chon && <td className="stt" onClick={(e) => e.stopPropagation()}><span className="o">{oChon(r)}</span></td>}
+                  {stt && <td className="stt"><span className="o">{i + 1}</span></td>}
+                  {cot.map((c) => <td key={c.k} className={[c.canh ? 'c-' + c.canh : '', thuDuoc(c) ? 'co' : ''].join(' ').trim() || undefined}><div className="o">{gt(c, r)}</div></td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {(demDong || chan || hien.length < daXep.length) && <div className="chan-bang">
+        <span>{demDong ? `${fmtSo(ds.length)} dòng${hien.length < daXep.length ? ` · đang hiện ${fmtSo(hien.length)}` : ''}` : ''}</span>
         <div className="hang" style={{ gap: 8 }}>
           {chan}
-          {hien.length < sx.ds.length && <Btn co="sm" kieu="mem" onClick={() => setN(n + 300)}>Xem thêm</Btn>}
+          {hien.length < daXep.length && <Btn co="sm" kieu="mem" onClick={() => setN(n + 300)}>Xem thêm</Btn>}
         </div>
-      </div>
+      </div>}
     </div>
   )
 }

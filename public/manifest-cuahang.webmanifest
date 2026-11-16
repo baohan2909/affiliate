@@ -1,0 +1,18 @@
+{
+  "id": "/cuahang",
+  "name": "Cửa hàng · Nón Sơn Affiliate Hub",
+  "short_name": "CH Affiliate",
+  "description": "Cổng cửa hàng: lịch quay chụp, đón khách, quét mã.",
+  "lang": "vi",
+  "start_url": "/cuahang",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14070F",
+  "theme_color": "#14070F",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

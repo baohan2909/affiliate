@@ -11,6 +11,7 @@ import { TheSanPham } from './SanPham'
 import { TheChienDich } from './ChienDich'
 import { TheTaiNguyen } from './Khac'
 import { NutZalo } from './CongKhai'
+import { TheCaiApp } from '../components/caidat'
 
 export function NhacXacThuc() {
   const { tv } = useAuth()
@@ -84,6 +85,7 @@ export default function TrangChu() {
       </section>
 
       <NhacXacThuc />
+      <TheCaiApp anDuoc />
 
       {viec.length > 0 && (
         <section>

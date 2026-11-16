@@ -9,3 +9,4 @@ gas/
 supabase/
 *.sql
 *.gs
+harness/

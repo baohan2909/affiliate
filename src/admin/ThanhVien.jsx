@@ -216,17 +216,15 @@ export function NhomCapDo() {
       <div className="hai-cot">
         <section className="lon">
           <div className="muc-dau"><h2>Cấp độ thành viên</h2><div className="hang" style={{ gap: 8 }}><Btn co="sm" kieu="vien" icon={RefreshCw} onClick={tinhLai}>Tính lại tất cả</Btn><Btn co="sm" kieu="den" icon={Plus} onClick={() => setCap({ ten: '', mau: MAU[0], thu_tu: (d.cap_do.at(-1)?.thu_tu ?? 0) + 1, dk_chien_dich: 0, dk_bai_dat: 0, dk_buoi_quay: 0, mo_ta: '', quyen_loi: '' })}>Thêm cấp</Btn></div></div>
-          <div className="bang-khung"><div className="bang-cuon"><table className="bang">
-            <thead><tr><th className="c-giua">Thứ tự</th><th>Cấp độ</th><th className="c-giua">Chiến dịch</th><th className="c-giua">Bài đạt</th><th className="c-giua">Buổi quay</th><th className="c-giua">Thành viên</th><th /></tr></thead>
-            <tbody>{d.cap_do.map((c) => (
-              <tr key={c.id} className="bam" onClick={() => setCap({ ...c })}>
-                <td className="c-giua">{c.thu_tu}</td>
-                <td><span className="hang" style={{ gap: 8 }}><i className="cham-mau" style={{ background: c.mau }} /><b>{c.ten}</b></span></td>
-                <td className="c-giua">≥ {c.dk_chien_dich}</td><td className="c-giua">≥ {c.dk_bai_dat}</td><td className="c-giua">≥ {c.dk_buoi_quay}</td>
-                <td className="c-giua"><b>{c.so_tv}</b></td>
-                <td className="c-phai"><Pencil size={15} className="muted" /></td>
-              </tr>))}</tbody>
-          </table></div></div>
+          <BangDL ds={d.cap_do} macDinh="thu_tu" chieu="tang" stt={false} demDong={false} onBam={(c) => setCap({ ...c })} trong="Chưa có cấp độ" cot={[
+            { k: 'thu_tu', t: 'Thứ tự', canh: 'giua' },
+            { k: 'ten', t: 'Cấp độ', chinh: true, o: (c) => <span className="hang" style={{ gap: 8 }}><i className="cham-mau" style={{ background: c.mau }} /><b>{c.ten}</b></span> },
+            { k: 'dk_chien_dich', t: 'Chiến dịch', canh: 'giua', o: (c) => '≥ ' + c.dk_chien_dich },
+            { k: 'dk_bai_dat', t: 'Bài đạt', canh: 'giua', o: (c) => '≥ ' + c.dk_bai_dat },
+            { k: 'dk_buoi_quay', t: 'Buổi quay', canh: 'giua', o: (c) => '≥ ' + c.dk_buoi_quay },
+            { k: 'so_tv', t: 'Thành viên', canh: 'giua', o: (c) => <b>{c.so_tv}</b> },
+            { k: 'tac', t: '', sx: false, canh: 'phai', o: () => <Pencil size={15} className="muted" /> }
+          ]} />
           <p className="nho muted">Thành viên đạt <b>đủ cả 3 điều kiện</b> của cấp cao nhất sẽ được xếp vào cấp đó. Điều kiện = 0 nghĩa là không yêu cầu.</p>
         </section>
         <section className="nho-cot">

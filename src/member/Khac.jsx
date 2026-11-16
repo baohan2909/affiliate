@@ -4,6 +4,7 @@ import {
   ArrowLeft, Bell, BookOpen, CheckCheck, Download, ExternalLink, FileText, Film, Gift, Image as IcAnh, KeyRound, Link2, LifeBuoy,
   LogOut, Pin, Plus, ScrollText, Search, Send, Trash2, UserRound, Lock, Star, Heart, CalendarDays, Megaphone
 } from 'lucide-react'
+import { TheCaiApp } from '../components/caidat'
 import { Anh, Bao, Btn, Chips, Chon, DongSwitch, Empty, Field, KhungTai, LoiTai, Md, Modal, Nhan, Segment, TextArea, ThanhTienDo, TrangDau, useToast } from '../components/ui'
 import { useAuth } from '../components/auth'
 import { useAsync, useDebounced } from '../lib/hooks'
@@ -453,6 +454,7 @@ function CaiDat({ tv }) {
   }
   return (
     <div className="cot" style={{ gap: 16 }}>
+      <TheCaiApp />
       <div className="card cot" style={{ gap: 10 }}>
         <div className="dau-the"><h2>Nhận email thông báo</h2></div>
         <p className="nho muted-2" style={{ marginTop: -6 }}>Thông báo trong ứng dụng vẫn luôn hiển thị. Email xác thực và bảo mật luôn được gửi.</p>
