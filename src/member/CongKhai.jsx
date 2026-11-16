@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, BadgeCheck, CalendarDays, ChevronDown, Eye, EyeOff, Megaphone, Plus, ShoppingBag, Sparkles, Trash2, Users, MailCheck, KeyRound, CircleAlert } from 'lucide-react'
+import { ArrowRight, BadgeCheck, CalendarDays, ChevronDown, Eye, EyeOff, Megaphone, Plus, ShoppingBag, Sparkles, Trash2, Users, MailCheck, KeyRound, CircleAlert, Percent } from 'lucide-react'
 import { Brand, Btn, Chon, Field, IconBtn, Bao, Spinner, ThanhTienDo, Chips, MaQR, useToast } from '../components/ui'
 import { useAuth } from '../components/auth'
 import { dangNhap, rpc, taiKhoan } from '../lib/api'
@@ -45,7 +45,7 @@ export function LandingPage() {
             <div className="lp-the-noi troi">
               {[
                 ['Sản phẩm chính thức', 'Top bán chạy, link sản phẩm, ảnh & video', ShoppingBag],
-                ['Quay chụp tại cửa hàng', 'Đặt lịch tại cửa hàng Nón Sơn gần bạn', CalendarDays],
+                ['Hoa hồng hấp dẫn đến 10%', 'Theo từng sản phẩm và chương trình', Percent],
                 ['Chiến dịch & ưu đãi riêng', 'Theo nhóm và cấp độ thành viên', Sparkles]
               ].map(([t, m, Ic]) => (
                 <div key={t} className="dong"><span className="ic"><Ic size={18} /></span><div><b>{t}</b><span>{m}</span></div></div>
