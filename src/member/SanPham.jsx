@@ -1,16 +1,18 @@
 // Sản phẩm Affiliate (thành viên): danh sách gọn · lấy link affiliate 1 chạm bằng ID Shopee Affiliate · nội dung đăng soạn sẵn
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
-  ArrowLeft, BookOpen, Check, ClipboardPaste, Copy, Download, ExternalLink, Heart, HardHat, Link2, Megaphone, Search,
-  Share2, ShoppingBag, Sparkles, X
+  BookOpen, Check, ClipboardPaste, Copy, Crown, Download, ExternalLink, Flame, Heart, HardHat, Link2, Megaphone, Search,
+  Share2, ShoppingBag, Sparkles, ThumbsUp, TrendingUp, X
 } from 'lucide-react'
-import { Anh, Btn, Chon, Empty, IconBtn, KhungTai, LoiTai, Md, Modal, NonIcon, TrangDau, saoChep, useToast } from '../components/ui'
+import { Anh, Btn, Chon, Empty, IconBtn, KhungTai, LoiTai, Md, Modal, NonIcon, saoChep, useToast } from '../components/ui'
 import { useAuth } from '../components/auth'
 import { useAsync, useDebounced } from '../lib/hooks'
 import { rpc, linkTai, sb } from '../lib/api'
-import { fmtPhanTram, fmtTien, khop } from '../lib/format'
+import { fmtNgay, fmtPhanTram, fmtTien, khop } from '../lib/format'
 import { LOAI_TN } from '../lib/hang'
+import { BAC, bacCua, uocHoaHong } from '../lib/xephang'
+import DauTrang from './DauTrang'
 
 export const SHOPEE_AFF = 'https://affiliate.shopee.vn/offer/custom_link'
 export const SHOPEE_DANG_KY = 'https://affiliate.shopee.vn/'
@@ -33,7 +35,7 @@ export const tenGon = (t) => String(t || '').replace(/^\s*(\[[^\]]*\]|ưu đãi)
 const soSanhTop = (a, b) => (b.luot_ban ?? -1) - (a.luot_ban ?? -1) || a.thu_tu - b.thu_tu
 
 // Gộp các mẫu (màu/size) dùng chung 1 link Shopee thành 1 sản phẩm → 1 link affiliate.
-// Thứ hạng trong từng danh mục chỉ dùng để sắp xếp và gắn nhãn "Bán chạy" cho 3 sản phẩm đầu (không hiện số bán).
+// Không hiện số bán với thành viên: số bán chỉ dùng để xếp hạng (TOP 1–10 · Bán siêu chạy · Bán chạy · Bán tốt).
 export function gomSanPham(ds) {
   const m = new Map()
   for (const s of ds || []) { const k = s.link || s.id; if (!m.has(k)) m.set(k, []); m.get(k).push(s) }
@@ -54,9 +56,11 @@ export function gomSanPham(ds) {
       yeu_thich: ms.some((x) => x.yeu_thich), chien_dich: [...cd.values()]
     })
   }
+  // Hạng trong danh mục (hang) và hạng toàn hệ thống (hang_all) — cùng cách xếp với máy chủ (fn_trang_chu, fn_san_pham_ct)
   const theoDm = {}
   out.forEach((g) => { (theoDm[g.danh_muc] = theoDm[g.danh_muc] || []).push(g) })
   Object.values(theoDm).forEach((a) => { a.sort(soSanhTop); a.forEach((g, i) => { g.hang = g.luot_ban > 0 ? i + 1 : null }) })
+  ;[...out].sort(soSanhTop).forEach((g, i) => { g.hang_all = g.luot_ban > 0 ? i + 1 : null })
   return out
 }
 
@@ -196,13 +200,50 @@ function HopLink({ g, dong }) {
   )
 }
 
-// ---------- Thẻ sản phẩm (ảnh · tên · hoa hồng · Lấy link) ----------
-export function TheSanPham({ s, onClick, onTim, onLay }) {
+// ---------- Nhãn xếp hạng: TOP 1–10 · Bán siêu chạy · Bán chạy · Bán tốt ----------
+// goc: tab ôm sát góc trên-trái thẻ (bo theo góc thẻ, có 2 "tai" cong nối liền mép) · noi: nhãn đứng riêng (banner, chi tiết)
+const IC_BAC = { sieu: Flame, chay: TrendingUp, tot: ThumbsUp }
+export function NhanBac({ hang, noi, phu }) {
+  const b = bacCua(hang)
+  if (!b) return null
+  const top = b.ma === 'top'
+  const Ic = IC_BAC[b.ma]
+  const lop = ['nb', noi ? 'noi' : 'goc', top ? 'nb-top ' + (hang <= 3 ? 'h' + hang : 'hn') : 'nb-' + b.ma].join(' ')
   return (
-    <article className="sp" onClick={onClick} role="link" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onClick?.()}>
+    <span className={lop} aria-label={top ? 'Top ' + hang : b.ten}>
+      {top ? <>{hang <= 3 && <Crown size={13} strokeWidth={2.4} />}<small>TOP</small><b>{hang}</b></> : <><Ic size={12} strokeWidth={2.6} /><span>{b.ten}</span></>}
+      {phu && <em>{phu}</em>}
+    </span>
+  )
+}
+
+// Giá niêm yết + hoa hồng (tỉ lệ và số tiền ước tính cho mỗi sản phẩm bán qua link)
+export function GiaHoaHong({ s }) {
+  const uoc = uocHoaHong(s.gia, s.hoa_hong)
+  return (
+    <>
+      {s.gia != null && <p className="sp-gia">{s.gia_max > s.gia && <small>từ</small>}<b>{fmtTien(s.gia)}</b><span>giá niêm yết</span></p>}
+      {s.hoa_hong != null && (
+        <div className="sp-hh">
+          <b>{fmtPhanTram(s.hoa_hong)}</b>
+          <span><small>Hoa hồng</small>{uoc != null && <em>≈ {fmtTien(uoc)}</em>}</span>
+        </div>
+      )}
+    </>
+  )
+}
+
+// ---------- Thẻ sản phẩm: ảnh (nhãn hạng ôm góc) · tên · giá niêm yết · hoa hồng · Lấy link ----------
+// hang: hạng dùng cho nhãn (trong danh mục hay toàn hệ thống tùy nơi hiển thị); không truyền thì dùng hạng toàn hệ thống
+export function TheSanPham({ s, hang, onClick, onTim, onLay }) {
+  const h = hang !== undefined ? hang : (s.hang_all ?? null)
+  const b = bacCua(h)
+  const lop = ['sp', b ? 'bac-' + b.ma : '', b?.ma === 'top' && h <= 3 ? 'top' + h : ''].filter(Boolean).join(' ')
+  return (
+    <article className={lop} onClick={onClick} role="link" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onClick?.()}>
       <div className="sp-anh">
         <Anh src={s.anh} alt={s.ten} />
-        {s.hang && s.hang <= 3 && <span className="sp-nhan">Bán chạy</span>}
+        <NhanBac hang={h} />
         {onTim && (
           <button type="button" className={'sp-tim' + (s.yeu_thich ? ' on' : '')} aria-label={s.yeu_thich ? 'Bỏ lưu' : 'Lưu sản phẩm'}
             onClick={(e) => { e.stopPropagation(); onTim(s) }}><Heart size={16} fill={s.yeu_thich ? 'currentColor' : 'none'} /></button>
@@ -210,7 +251,7 @@ export function TheSanPham({ s, onClick, onTim, onLay }) {
       </div>
       <div className="sp-than">
         <h3 className="sp-ten">{tenGon(s.ten)}</h3>
-        <div className="sp-hh">{s.hoa_hong != null ? <><span>Hoa hồng</span><b>{fmtPhanTram(s.hoa_hong)}</b></> : <span>{s.danh_muc || doanDanhMuc(s)}</span>}</div>
+        <GiaHoaHong s={s} />
         {onLay && s.link && <button type="button" className="nut-lay" onClick={(e) => onLay(s, e)}><Link2 size={15} strokeWidth={2.4} />Lấy link</button>}
       </div>
     </article>
@@ -244,19 +285,39 @@ export function NhacKetNoi({ onBam }) {
 }
 
 const SAP_XEP = [
-  { v: 'ban_chay', t: 'Bán chạy' }, { v: 'hoa_hong', t: 'Hoa hồng cao' }, { v: 'moi', t: 'Mới nhất' },
-  { v: 'gia_tang', t: 'Giá thấp → cao' }, { v: 'gia_giam', t: 'Giá cao → thấp' }
+  { v: 'xep_hang', t: 'Xếp hạng bán chạy' }, { v: 'tien', t: 'Hoa hồng nhiều tiền nhất' }, { v: 'hoa_hong', t: 'Tỉ lệ hoa hồng cao' },
+  { v: 'gia_tang', t: 'Giá thấp → cao' }, { v: 'gia_giam', t: 'Giá cao → thấp' }, { v: 'moi', t: 'Mới nhất' }
 ]
+// Số sản phẩm hiện sẵn ở mỗi nhóm khi xem theo xếp hạng (bấm "Xem thêm" để mở tiếp)
+const HIEN_DAU = { top: 10, sieu: 20, chay: 10, tot: 10, khac: 20 }
+const IC_KHOI = { top: Crown, sieu: Flame, chay: TrendingUp, tot: ThumbsUp }
+
+// Đầu mỗi nhóm xếp hạng: biểu tượng cùng màu nhãn trên thẻ · tên nhóm · khoảng hạng
+function DauBac({ ma, tieuDe, phu, so }) {
+  const Ic = IC_KHOI[ma] || ShoppingBag
+  return (
+    <div className={'bac-dau b-' + ma}>
+      <span className="bac-ic"><Ic size={17} strokeWidth={2.4} /></span>
+      <div className="gian"><h2>{tieuDe}</h2>{phu && <p>{phu}</p>}</div>
+      {so != null && <span className="bac-so">{so}</span>}
+    </div>
+  )
+}
 
 export function DsSanPham() {
   const nav = useNavigate()
+  const [sp, setSp] = useSearchParams()
   const { data, loading, error, reload, setData } = useAsync(() => rpc('fn_san_pham_ds'), [])
   const [q, setQ] = useState('')
-  const [dm, setDm] = useState('')
+  const [timMo, setTimMo] = useState(false)
+  const oNhap = useRef(null)
   const [cd, setCd] = useState('')
   const [chiLuu, setChiLuu] = useState(false)
-  const [sx, setSx] = useState('ban_chay')
+  const [sx, setSx] = useState('xep_hang')
   const [soHien, setSoHien] = useState(40)
+  const [mo, setMo] = useState(HIEN_DAU)
+  const dm = sp.get('dm') || ''
+  const setDm = (v) => setSp(v ? { dm: v } : {}, { replace: true })
   const qd = useDebounced(q, 200)
   const tim = useYeuThich(setData)
   const ll = useLayLink()
@@ -264,50 +325,99 @@ export function DsSanPham() {
   const demDm = useMemo(() => { const c = {}; nhom.forEach((g) => { c[g.danh_muc] = (c[g.danh_muc] || 0) + 1 }); return c }, [nhom])
   const dsDm = [MBH, NV, PK].filter((x) => demDm[x]).concat(Object.keys(demDm).filter((x) => ![MBH, NV, PK].includes(x)))
   const dsCd = useMemo(() => { const m = new Map(); nhom.forEach((g) => g.chien_dich.forEach((c) => m.set(c.id, c.ten))); return [...m].map(([v, t]) => ({ v, t })) }, [nhom])
+  const hangCua = (g) => (dm ? g.hang : g.hang_all)
   const loc = useMemo(() => {
     let r = nhom.filter((g) => (!dm || g.danh_muc === dm) && (!cd || g.chien_dich.some((c) => c.id === cd)) && (!chiLuu || g.yeu_thich)
       && (!qd || g.mau.some((s) => khop(s.ten + ' ' + s.ma + ' ' + (s.sku || ''), qd))))
     const so = (x) => (x == null ? -Infinity : Number(x))
-    if (sx === 'ban_chay') r = [...r].sort(soSanhTop)
-    if (sx === 'hoa_hong') r = [...r].sort((a, b) => so(b.hoa_hong) - so(a.hoa_hong) || soSanhTop(a, b))
-    if (sx === 'gia_tang') r = [...r].sort((a, b) => (a.gia ?? Infinity) - (b.gia ?? Infinity))
-    if (sx === 'gia_giam') r = [...r].sort((a, b) => so(b.gia) - so(a.gia))
-    if (sx === 'moi') r = [...r].sort((a, b) => String(b.tao_luc).localeCompare(String(a.tao_luc)))
+    r = [...r].sort(soSanhTop)
+    if (sx === 'tien') r.sort((a, b) => so(uocHoaHong(b.gia, b.hoa_hong)) - so(uocHoaHong(a.gia, a.hoa_hong)) || soSanhTop(a, b))
+    if (sx === 'hoa_hong') r.sort((a, b) => so(b.hoa_hong) - so(a.hoa_hong) || soSanhTop(a, b))
+    if (sx === 'gia_tang') r.sort((a, b) => (a.gia ?? Infinity) - (b.gia ?? Infinity) || soSanhTop(a, b))
+    if (sx === 'gia_giam') r.sort((a, b) => so(b.gia) - so(a.gia) || soSanhTop(a, b))
+    if (sx === 'moi') r.sort((a, b) => String(b.tao_luc).localeCompare(String(a.tao_luc)))
     return r
   }, [nhom, qd, dm, cd, chiLuu, sx])
-  useEffect(() => { setSoHien(40) }, [qd, dm, cd, chiLuu, sx])
-  const coLoc = dm || cd || chiLuu || q
-  const boLoc = () => { setQ(''); setDm(''); setCd(''); setChiLuu(false) }
+  useEffect(() => { setSoHien(40); setMo(HIEN_DAU) }, [qd, dm, cd, chiLuu, sx])
+  // Xem theo xếp hạng (mặc định, không tìm/lọc): chia nhóm TOP 10 → Bán siêu chạy → Bán chạy → Bán tốt → các sản phẩm khác
+  const theoBac = sx === 'xep_hang' && !qd && !cd && !chiLuu
+  const khoi = useMemo(() => {
+    if (!theoBac) return []
+    const k = BAC.map((b) => ({ ...b, ds: loc.filter((g) => { const h = dm ? g.hang : g.hang_all; return h >= b.tu && h <= b.den }) }))
+    const khac = loc.filter((g) => { const h = dm ? g.hang : g.hang_all; return !h || h > BAC[BAC.length - 1].den })
+    return [...k, { ma: 'khac', tieuDe: 'Các sản phẩm khác', ds: khac }].filter((x) => x.ds.length)
+  }, [theoBac, loc, dm])
+  const coLoc = cd || chiLuu || q
+  const boLoc = () => { setQ(''); setCd(''); setChiLuu(false); setTimMo(false) }
+  const ngay = data?.du_lieu_den ? ' · cập nhật ' + fmtNgay(data.du_lieu_den).slice(0, 5) : ''
+  const luoi = (ds) => (
+    <div className="luoi-sp">
+      {ds.map((g) => <TheSanPham key={g.key} s={g} hang={hangCua(g)} onTim={tim} onLay={ll.lay} onClick={() => nav('/san-pham/' + g.id)} />)}
+    </div>
+  )
+  const oTim = (
+    <label className="dau-tim">
+      <Search size={18} />
+      <input ref={oNhap} type="search" placeholder="Tìm tên hoặc mã sản phẩm" value={q} onChange={(e) => setQ(e.target.value)} enterKeyHint="search" />
+      {q && <button type="button" aria-label="Xóa" onClick={() => setQ('')}><X size={15} /></button>}
+    </label>
+  )
   return (
     <>
-      <TrangDau tieuDe="Sản phẩm" phu="Chọn sản phẩm, bấm Lấy link là có ngay link affiliate của bạn." />
+      <DauTrang
+        lop={'dau-sp' + (timMo ? ' tim-mo' : '')}
+        tieu="Sản phẩm"
+        phu={nhom.length ? (coLoc ? loc.length + ' kết quả' : nhom.length + ' sản phẩm') : null}
+        trai={oTim}
+        phai={<>
+          <button type="button" className="dau-nut nut-tim" aria-label="Tìm sản phẩm" onClick={() => { oNhap.current?.focus({ preventScroll: true }); setTimMo(true) }}><Search size={20} /></button>
+          <button type="button" className="dau-nut nut-huy" onClick={() => { setQ(''); setTimMo(false) }}>Hủy</button>
+          <button type="button" className={'dau-nut' + (chiLuu ? ' on' : '')} aria-pressed={chiLuu} aria-label="Sản phẩm đã lưu" title="Sản phẩm đã lưu" onClick={() => setChiLuu(!chiLuu)}>
+            <Heart size={19} fill={chiLuu ? 'currentColor' : 'none'} />
+          </button>
+        </>}
+        duoi={dsDm.length > 0 && (
+          <div className="sp-dm" role="tablist" aria-label="Danh mục" style={{ '--so': dsDm.length + 1 <= 5 ? dsDm.length + 1 : Math.ceil((dsDm.length + 1) / 2) }}>
+            <button type="button" role="tab" aria-selected={!dm} className={!dm ? 'on' : ''} onClick={() => setDm('')}>Tất cả</button>
+            {dsDm.map((x) => <button key={x} type="button" role="tab" aria-selected={dm === x} className={dm === x ? 'on' : ''} onClick={() => setDm(x)}>{x}</button>)}
+          </div>
+        )}
+      />
       {!ll.daKetNoi && <NhacKetNoi onBam={ll.moKetNoi} />}
 
-      <div className="sp-loc">
-        <label className="o-tim"><Search size={18} /><input placeholder="Tìm tên hoặc mã sản phẩm" value={q} onChange={(e) => setQ(e.target.value)} />{q && <button type="button" aria-label="Xóa" onClick={() => setQ('')}><X size={15} /></button>}</label>
-        <div className="sp-dm" role="tablist" aria-label="Danh mục" style={{ '--so': dsDm.length + 1 <= 5 ? dsDm.length + 1 : Math.ceil((dsDm.length + 1) / 2) }}>
-          <button type="button" role="tab" aria-selected={!dm} className={!dm ? 'on' : ''} onClick={() => setDm('')}>Tất cả</button>
-          {dsDm.map((x) => <button key={x} type="button" role="tab" aria-selected={dm === x} className={dm === x ? 'on' : ''} onClick={() => setDm(x)}>{x}</button>)}
-        </div>
-        <div className="sp-cong-cu">
-          <Chon kieu="tron" ds={SAP_XEP} giaTri={sx} onChon={setSx} />
-          {dsCd.length > 0 && <Chon kieu="tron" ds={[{ v: '', t: 'Mọi chương trình' }, ...dsCd]} giaTri={cd} onChon={setCd} />}
-          <button type="button" className={'chip-loc' + (chiLuu ? ' on' : '')} onClick={() => setChiLuu(!chiLuu)}><Heart size={14} fill={chiLuu ? 'currentColor' : 'none'} />Đã lưu</button>
-          <span className="sp-dem">{loc.length} sản phẩm</span>
-        </div>
+      <div className="sp-cong-cu">
+        <Chon kieu="tron" ds={SAP_XEP} giaTri={sx} onChon={setSx} />
+        {dsCd.length > 0 && <Chon kieu="tron" ds={[{ v: '', t: 'Mọi chương trình' }, ...dsCd]} giaTri={cd} onChon={setCd} />}
+        {coLoc && <button type="button" className="chip-loc" onClick={boLoc}><X size={14} />Bỏ lọc</button>}
       </div>
 
       {loading && !data ? <KhungTai /> : error && !data ? <LoiTai loi={error} thuLai={reload} /> : loc.length === 0
-        ? <Empty icon={ShoppingBag} tieuDe={nhom.length ? 'Không có sản phẩm phù hợp' : 'Danh mục đang được cập nhật'}
+        ? <Empty icon={chiLuu ? Heart : ShoppingBag} tieuDe={chiLuu && !qd ? 'Chưa lưu sản phẩm nào' : nhom.length ? 'Không có sản phẩm phù hợp' : 'Danh mục đang được cập nhật'}
             hanhDong={coLoc && <Btn kieu="vien" co="sm" icon={X} onClick={boLoc}>Bỏ lọc</Btn>}>
-            {nhom.length ? 'Thử bỏ bớt bộ lọc.' : 'Nón Sơn sẽ sớm đưa sản phẩm Affiliate lên đây.'}
+            {chiLuu && !qd ? 'Bấm hình trái tim trên sản phẩm để lưu lại xem sau.' : nhom.length ? 'Thử từ khóa khác hoặc bỏ bớt bộ lọc.' : 'Nón Sơn sẽ sớm đưa sản phẩm Affiliate lên đây.'}
           </Empty>
-        : <>
-            <div className="luoi-sp">
-              {loc.slice(0, soHien).map((g) => <TheSanPham key={g.key} s={g} onTim={tim} onLay={ll.lay} onClick={() => nav('/san-pham/' + g.id)} />)}
-            </div>
-            {loc.length > soHien && <div style={{ textAlign: 'center' }}><Btn kieu="vien" onClick={() => setSoHien(soHien + 40)}>Xem thêm sản phẩm · còn {loc.length - soHien}</Btn></div>}
-          </>}
+        : theoBac
+          ? khoi.map((k) => {
+              const hien = mo[k.ma] ?? 20
+              const them = k.ma === 'khac' ? 40 : 20
+              return (
+                <section key={k.ma} className={'bac-khoi k-' + k.ma}>
+                  <DauBac ma={k.ma} tieuDe={k.ma === 'top' ? 'Top 10 bán chạy nhất' : k.tieuDe}
+                    phu={k.ma === 'top' ? 'Số bán 30 ngày gần nhất' + ngay : k.ma === 'khac' ? 'Sắp xếp theo số bán' : `Hạng ${k.tu}–${k.den}${dm ? ' · ' + dm : ''}`}
+                    so={k.ma === 'top' ? null : k.ds.length} />
+                  {luoi(k.ds.slice(0, hien))}
+                  {k.ds.length > hien && (
+                    <button type="button" className="xem-them" onClick={() => setMo({ ...mo, [k.ma]: hien + them })}>
+                      Xem thêm {Math.min(them, k.ds.length - hien)} sản phẩm {k.ma === 'khac' ? '' : k.ten}<span>còn {k.ds.length - hien}</span>
+                    </button>
+                  )}
+                </section>
+              )
+            })
+          : <>
+              {luoi(loc.slice(0, soHien))}
+              {loc.length > soHien && <button type="button" className="xem-them" onClick={() => setSoHien(soHien + 40)}>Xem thêm sản phẩm<span>còn {loc.length - soHien}</span></button>}
+            </>}
       {ll.giaoDien}
     </>
   )
@@ -322,11 +432,16 @@ export function CtSanPham() {
   const [anhChon, setAnhChon] = useState(0)
   const ll = useLayLink()
   useEffect(() => setAnhChon(0), [id])
-  if (loading && !s) return <KhungTai />
-  if (error && !s) return <LoiTai loi={error} thuLai={reload} />
+  if (loading && !s) return <><DauTrang lui="/san-pham" tieu="Chi tiết sản phẩm" /><KhungTai /></>
+  if (error && !s) return <><DauTrang lui="/san-pham" tieu="Chi tiết sản phẩm" /><LoiTai loi={error} thuLai={reload} /></>
   const mau = s.cung_link || []
   const g = { ...s, key: s.link || s.id, danh_muc: s.danh_muc || doanDanhMuc(s), so_mau: Math.max(1, mau.length) }
   const anh = [s.anh, ...(s.anh_phu || [])].filter(Boolean)
+  const xh = s.xep_hang
+  const giaMau = mau.map((x) => x.gia).filter((x) => x != null).map(Number)
+  const giaMin = giaMau.length ? Math.min(...giaMau) : Number(s.gia)
+  const giaMax = giaMau.length ? Math.max(...giaMau) : Number(s.gia)
+  const uoc = uocHoaHong(s.gia, s.hoa_hong)
   const tim = async () => {
     const moi = !s.yeu_thich
     setData({ ...s, yeu_thich: moi })
@@ -348,7 +463,7 @@ export function CtSanPham() {
   }
   return (
     <div className="ct">
-      <div><button type="button" className="lien-ket" onClick={() => nav(-1)}><ArrowLeft size={16} />Quay lại</button></div>
+      <DauTrang lui="/san-pham" tieu="Chi tiết sản phẩm" />
       <div className="ct-luoi">
         <section className="ct-trai">
           <div className="ct-anh">
@@ -362,13 +477,17 @@ export function CtSanPham() {
         </section>
         <section className="ct-phai">
           <div className="card ct-tt">
-            <span className="ct-dm">{g.danh_muc}</span>
+            <div className="ct-nhan">
+              {xh?.h_dm && bacCua(xh.h_dm) ? <NhanBac noi hang={xh.h_dm} phu={xh.dm || g.danh_muc} /> : <span className="ct-dm">{g.danh_muc}</span>}
+              {xh?.h_all && bacCua(xh.h_all) && xh.h_all !== xh.h_dm && <NhanBac noi hang={xh.h_all} phu="Toàn hệ thống" />}
+            </div>
             <h1>{tenGon(s.ten)}</h1>
             <p className="ct-ma">Mã {s.ma}{s.sku ? ' · SKU ' + s.sku : ''}</p>
             <div className="ct-so">
+              {s.gia != null && <div><span>Giá niêm yết</span><b>{giaMin < giaMax ? fmtTien(giaMin) + ' – ' + fmtTien(giaMax) : fmtTien(s.gia)}</b></div>}
               {s.hoa_hong != null && <div className="hh"><span>Hoa hồng</span><b>{fmtPhanTram(s.hoa_hong)}</b></div>}
-              {s.gia != null && <div><span>Giá bán</span><b>{fmtTien(s.gia)}</b></div>}
             </div>
+            {uoc != null && <p className="ct-uoc"><b>≈ {fmtTien(uoc)}</b><span>hoa hồng bạn nhận cho mỗi sản phẩm bán qua link</span></p>}
             {s.hoa_hong_ghi_chu && <p className="nho muted-2">{s.hoa_hong_ghi_chu}</p>}
             <div className="ct-nut">
               {s.link && <button type="button" className="nut-lay lon" onClick={(e) => ll.lay(g, e)}><Link2 size={18} strokeWidth={2.4} />Lấy link affiliate</button>}

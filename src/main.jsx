@@ -5,6 +5,7 @@ import './styles/base.css'
 import './styles/khung.css'
 import './styles/app.css'
 import './styles/v2.css'
+import './styles/v3.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

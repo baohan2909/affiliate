@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
-  ArrowLeft, Bell, BookOpen, CalendarDays, CheckCheck, Download, ExternalLink, FileText, Film, Gift, Heart, Image as IcAnh, KeyRound, LifeBuoy, Link2, Lock, LogOut, Megaphone, Pin, Plus, ScrollText, Search, Send, Star, Trash2, UserRound
+  Bell, BookOpen, CalendarDays, CheckCheck, Download, ExternalLink, FileText, Film, Gift, Heart, Image as IcAnh, KeyRound, LifeBuoy, Link2, Lock, LogOut, Megaphone, Pin, Plus, ScrollText, Search, Send, Star, Trash2, UserRound
 } from 'lucide-react'
 import { CaiDatApp, TheCaiApp } from '../components/caidat'
 import { KetNoiShopee } from './SanPham'
-import { Anh, Bao, Btn, Chips, Chon, DongSwitch, Empty, Field, KhungTai, LoiTai, Md, Modal, Nhan, Segment, TextArea, ThanhTienDo, TrangDau, useToast } from '../components/ui'
+import { Anh, Bao, Btn, Chips, Chon, DongSwitch, Empty, Field, KhungTai, LoiTai, Md, Modal, Nhan, Segment, TextArea, ThanhTienDo, useToast } from '../components/ui'
+import DauTrang from './DauTrang'
 import { useAuth } from '../components/auth'
 import { useAsync, useDebounced } from '../lib/hooks'
 import { rpc, linkTai, doiMatKhau } from '../lib/api'
@@ -30,8 +31,8 @@ export function UuDai() {
   const hien = nhom[tab]
   return (
     <>
-      <TrangDau tieuDe="Ưu đãi của tôi" phu="Quyền lợi Nón Sơn dành cho bạn theo cấp độ, nhóm hoặc riêng cá nhân." />
-      <div><Segment trang giaTri={tab} onChon={setTab} ds={[{ v: 'dang', t: 'Đang hiệu lực', dem: nhom.dang.length }, { v: 'sap', t: 'Sắp tới', dem: nhom.sap.length }, { v: 'het', t: 'Đã hết hạn' }]} /></div>
+      <DauTrang lui="/toi" luiDt tieu="Ưu đãi của tôi" phu="Theo cấp độ, nhóm hoặc riêng bạn"
+        duoi={<Segment giaTri={tab} onChon={setTab} ds={[{ v: 'dang', t: 'Đang hiệu lực', dem: nhom.dang.length }, { v: 'sap', t: 'Sắp tới', dem: nhom.sap.length }, { v: 'het', t: 'Đã hết hạn' }]} />} />
       {loading && !data ? <KhungTai /> : error && !data ? <LoiTai loi={error} thuLai={reload} />
         : hien.length === 0 ? <Empty icon={Gift} tieuDe="Chưa có ưu đãi ở mục này">Tích cực tham gia chiến dịch để lên cấp và nhận thêm quyền lợi.</Empty>
           : <div className="luoi-cd">{hien.map((u) => (
@@ -94,7 +95,7 @@ export function DsTaiNguyen() {
   const loc = ds.filter((r) => (!loai || r.loai === loai) && (!cm || r.chuyen_muc === cm) && khop(r.tieu_de + ' ' + (r.mo_ta || '') + ' ' + (r.san_pham?.ten || ''), qd))
   return (
     <>
-      <TrangDau tieuDe="Hướng dẫn & tài nguyên" phu="Hướng dẫn làm Affiliate, hình ảnh, video và tài liệu sản phẩm Nón Sơn." />
+      <DauTrang lui="/toi" luiDt tieu="Hướng dẫn & tài nguyên" phu={data ? ds.length + ' tài liệu, ảnh, video' : null} />
       <div className="toolbar">
         <label className="input-tron"><Search size={17} /><input placeholder="Tìm tài nguyên…" value={q} onChange={(e) => setQ(e.target.value)} /></label>
         {dsCm.length > 1 && <Chon kieu="tron" ds={[{ v: '', t: 'Mọi chuyên mục' }, ...dsCm.map((x) => ({ v: x, t: x }))]} giaTri={cm} onChon={setCm} />}
@@ -109,7 +110,6 @@ export function DsTaiNguyen() {
 
 export function CtTaiNguyen() {
   const { id } = useParams()
-  const nav = useNavigate()
   const bao = useToast()
   const { data: r, loading, error, reload } = useAsync(() => rpc('fn_tai_nguyen_ct', { p_id: id }), [id])
   const [xem, setXem] = useState(null)
@@ -118,8 +118,8 @@ export function CtTaiNguyen() {
     setXem(null)
     if (r?.duong_dan && ['anh', 'video'].includes(r.loai)) linkTai(r.duong_dan).then(setXem).catch(() => {})
   }, [r?.id]) // eslint-disable-line react-hooks/exhaustive-deps
-  if (loading && !r) return <KhungTai />
-  if (error && !r) return <LoiTai loi={error} thuLai={reload} />
+  if (loading && !r) return <><DauTrang lui="/tai-nguyen" tieu="Hướng dẫn & tài nguyên" /><KhungTai /></>
+  if (error && !r) return <><DauTrang lui="/tai-nguyen" tieu="Hướng dẫn & tài nguyên" /><LoiTai loi={error} thuLai={reload} /></>
   const tai = async () => {
     setDang(true)
     try {
@@ -131,7 +131,7 @@ export function CtTaiNguyen() {
   const Ic = IC_TN[r.loai] || FileText
   return (
     <>
-      <div><button type="button" className="lien-ket" onClick={() => nav(-1)}><ArrowLeft size={16} />Quay lại</button></div>
+      <DauTrang lui="/tai-nguyen" tieu="Hướng dẫn & tài nguyên" />
       <article className="card cot" style={{ gap: 14, maxWidth: 820 }}>
         <div className="hang wrap" style={{ gap: 6 }}>
           <span className="tag" style={{ background: MAU_TN[r.loai]?.[0], color: MAU_TN[r.loai]?.[1] }}><Ic size={12} />{LOAI_TN[r.loai]}</span>
@@ -178,9 +178,9 @@ export function ThongBao() {
   }
   return (
     <>
-      <TrangDau tieuDe="Thông báo" phu="Tin từ Nón Sơn về lịch quay, chiến dịch, ưu đãi và cộng đồng."
-        phai={chua > 0 && <Btn kieu="vien" co="sm" icon={CheckCheck} onClick={docHet}>Đọc tất cả</Btn>} />
-      <div><Segment trang giaTri={loc} onChon={setLoc} ds={[{ v: '', t: 'Tất cả' }, { v: 'chua', t: 'Chưa đọc', dem: chua }]} /></div>
+      <DauTrang lui="/" luiDt tieu="Thông báo" chuong={false} phu={chua > 0 ? chua + ' chưa đọc' : 'Bạn đã đọc hết'}
+        phai={chua > 0 && <button type="button" className="dau-nut dau-chu" onClick={docHet}><CheckCheck size={17} /><span>Đọc tất cả</span></button>}
+        duoi={<Segment giaTri={loc} onChon={setLoc} ds={[{ v: '', t: 'Tất cả' }, { v: 'chua', t: 'Chưa đọc', dem: chua }]} />} />
       {loading && !data ? <KhungTai /> : error && !data ? <LoiTai loi={error} thuLai={reload} />
         : hien.length === 0 ? <Empty icon={Bell} tieuDe={loc ? 'Bạn đã đọc hết thông báo' : 'Chưa có thông báo'} />
           : <div className="card" style={{ paddingTop: 4, paddingBottom: 4 }}>
@@ -234,8 +234,8 @@ export function DsHoTro() {
   const ds = data || []
   return (
     <>
-      <TrangDau tieuDe="Hỗ trợ" phu="Câu hỏi thường gặp và yêu cầu hỗ trợ của bạn."
-        phai={<Btn kieu="den" icon={Plus} onClick={() => setTao(true)}>Gửi yêu cầu</Btn>} />
+      <DauTrang lui="/toi" luiDt tieu="Hỗ trợ" phu="Hỏi đáp và yêu cầu của bạn"
+        phai={<button type="button" className="dau-nut dau-chinh" onClick={() => setTao(true)}><Plus size={17} strokeWidth={2.4} /><span>Gửi yêu cầu</span></button>} />
       <div className="hai-cot">
         <section className="lon">
           <div className="card">
@@ -282,15 +282,14 @@ export function DsHoTro() {
 
 export function CtHoTro() {
   const { id } = useParams()
-  const nav = useNavigate()
   const bao = useToast()
   const { data: h, loading, error, reload } = useAsync(() => rpc('fn_ho_tro_ct', { p_id: id }), [id])
   const [chu, setChu] = useState('')
   const [dang, setDang] = useState(false)
   const cuoi = useRef(null)
   useEffect(() => { cuoi.current?.scrollIntoView({ block: 'end' }) }, [h?.tra_loi?.length])
-  if (loading && !h) return <KhungTai />
-  if (error && !h) return <LoiTai loi={error} thuLai={reload} />
+  if (loading && !h) return <><DauTrang lui="/ho-tro" tieu="Yêu cầu hỗ trợ" /><KhungTai /></>
+  if (error && !h) return <><DauTrang lui="/ho-tro" tieu="Yêu cầu hỗ trợ" /><LoiTai loi={error} thuLai={reload} /></>
   const gui = async () => {
     if (!chu.trim()) return
     setDang(true)
@@ -298,7 +297,7 @@ export function CtHoTro() {
   }
   return (
     <>
-      <div><button type="button" className="lien-ket" onClick={() => nav('/ho-tro')}><ArrowLeft size={16} />Danh sách yêu cầu</button></div>
+      <DauTrang lui="/ho-tro" tieu="Yêu cầu hỗ trợ" phu={h.ma} />
       <div className="card cot" style={{ gap: 14, maxWidth: 820 }}>
         <div className="hang wrap" style={{ gap: 8 }}>
           <div className="gian" style={{ minWidth: 200 }}>
@@ -511,6 +510,7 @@ export function Toi() {
   const datTab = (v) => setSp({ tab: v }, { replace: true })
   return (
     <>
+      <DauTrang tieu="Tài khoản" />
       <TheCapDoToi tv={tv} />
       <MenuToi tv={tv} />
       {tv.trang_thai === 'khoa' && <Bao kieu="loi">Tài khoản đang tạm khóa{tv.ly_do_khoa ? ': ' + tv.ly_do_khoa : ''}. Liên hệ Hỗ trợ để được giải quyết.</Bao>}

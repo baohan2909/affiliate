@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, CalendarRange, CheckCircle2, Link2, Lock, Megaphone, Send, Trash2, Users } from 'lucide-react'
-import { Anh, Btn, Empty, Field, KhungTai, LoiTai, Md, Nhan, Segment, TrangDau, useToast, useXacNhan, Bao } from '../components/ui'
+import { CalendarRange, CheckCircle2, Link2, Lock, Megaphone, Send, Trash2, Users } from 'lucide-react'
+import { Anh, Btn, Empty, Field, KhungTai, LoiTai, Md, Nhan, Segment, useToast, useXacNhan, Bao } from '../components/ui'
+import DauTrang from './DauTrang'
 import { useAuth } from '../components/auth'
 import { useAsync } from '../lib/hooks'
 import { rpc } from '../lib/api'
@@ -48,12 +49,12 @@ export function DsChienDich() {
   const dem = (f) => ds.filter(f).length
   return (
     <>
-      <TrangDau tieuDe="Chiến dịch" phu="Đăng ký tham gia, nhận nhiệm vụ và quyền lợi của từng chương trình." />
-      <div><Segment trang giaTri={tab} onChon={setTab} ds={[
-        { v: 'dang', t: 'Đang diễn ra', dem: dem((c) => c.giai_doan === 'dang_dien_ra') },
-        { v: 'sap', t: 'Sắp diễn ra', dem: dem((c) => c.giai_doan === 'sap_dien_ra') },
-        { v: 'toi', t: 'Của tôi', dem: dem((c) => ['da_tham_gia', 'cho_duyet'].includes(c.cua_toi)) },
-        { v: 'xong', t: 'Đã kết thúc' }]} /></div>
+      <DauTrang tieu="Chiến dịch" phu={data ? dem((c) => c.giai_doan === 'dang_dien_ra') + ' chương trình đang diễn ra' : null}
+        duoi={<Segment giaTri={tab} onChon={setTab} ds={[
+          { v: 'dang', t: 'Đang diễn ra', dem: dem((c) => c.giai_doan === 'dang_dien_ra') },
+          { v: 'sap', t: 'Sắp diễn ra', dem: dem((c) => c.giai_doan === 'sap_dien_ra') },
+          { v: 'toi', t: 'Của tôi', dem: dem((c) => ['da_tham_gia', 'cho_duyet'].includes(c.cua_toi)) },
+          { v: 'xong', t: 'Đã kết thúc' }]} />} />
       {loading && !data ? <KhungTai /> : error && !data ? <LoiTai loi={error} thuLai={reload} />
         : loc.length === 0 ? <Empty icon={Megaphone} tieuDe="Chưa có chiến dịch ở mục này">Nón Sơn sẽ thông báo cho bạn khi có chương trình mới.</Empty>
           : <div className="luoi-cd">{loc.map((c) => <TheChienDich key={c.id} c={c} />)}</div>}
@@ -120,8 +121,8 @@ export function CtChienDich() {
   const { tv, taiToi } = useAuth()
   const { data: c, loading, error, reload } = useAsync(() => rpc('fn_chien_dich_ct', { p_id: id }), [id])
   const [dang, setDang] = useState(false)
-  if (loading && !c) return <KhungTai />
-  if (error && !c) return <LoiTai loi={error} thuLai={reload} />
+  if (loading && !c) return <><DauTrang lui="/chien-dich" tieu="Chi tiết chiến dịch" /><KhungTai /></>
+  if (error && !c) return <><DauTrang lui="/chien-dich" tieu="Chi tiết chiến dịch" /><LoiTai loi={error} thuLai={reload} /></>
   const ketThuc = c.giai_doan === 'da_ket_thuc'
   const thamGia = c.cua_toi === 'da_tham_gia'
   const dangKy = async () => {
@@ -139,7 +140,7 @@ export function CtChienDich() {
   const het = c.so_suat && c.da_tham_gia >= c.so_suat && !c.cua_toi
   return (
     <>
-      <div><button type="button" className="lien-ket" onClick={() => nav(-1)}><ArrowLeft size={16} />Quay lại</button></div>
+      <DauTrang lui="/chien-dich" tieu="Chi tiết chiến dịch" />
       <section className="hero-tv" style={{ padding: 0 }}>
         {c.anh_bia && <div style={{ position: 'absolute', inset: 0, zIndex: -1, opacity: 0.35 }}><Anh src={c.anh_bia} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>}
         <div className="glow hong" style={{ width: 300, height: 300, right: -90, top: -130, opacity: 0.5 }} />

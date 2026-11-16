@@ -2,16 +2,18 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Bell, BookOpen, CalendarDays, CalendarPlus, ChevronRight, CircleCheck, FileWarning, Gift, LifeBuoy, Link2, Mail, Megaphone, Send, ShoppingBag, Star, Target } from 'lucide-react'
 import { useAuth } from '../components/auth'
-import { Anh, Btn, Bao, KhungTai, LoiTai, ThanhTienDo, useToast, Nhan } from '../components/ui'
+import { Anh, Btn, Bao, KhungTai, LoiTai, LogoO, ThanhTienDo, useToast, Nhan } from '../components/ui'
 import { useAsync } from '../lib/hooks'
 import { rpc } from '../lib/api'
-import { fmtNgay, fmtNgayThu, fmtPhanTram, tuongDoi, conLai } from '../lib/format'
+import { fmtNgay, fmtNgayThu, fmtPhanTram, fmtTien, tuongDoi, conLai } from '../lib/format'
 import { TT_LICH, LOAI_UU_DAI } from '../lib/hang'
-import { TheSanPham, doanDanhMuc, tenGon, useLayLink } from './SanPham'
+import { uocHoaHong } from '../lib/xephang'
+import { NhanBac, TheSanPham, doanDanhMuc, tenGon, useLayLink } from './SanPham'
 import { TheChienDich } from './ChienDich'
 import { TheTaiNguyen } from './Khac'
 import { NutZalo } from './CongKhai'
 import { TheCaiApp } from '../components/caidat'
+import DauTrang from './DauTrang'
 
 export function NhacXacThuc() {
   const { tv } = useAuth()
@@ -45,42 +47,114 @@ export function TheCapDo({ tv }) {
   )
 }
 
-// Banner sản phẩm đang triển khai: tự chuyển 5 giây, chấm để chọn, vuốt được
+// ---------- Banner sản phẩm TOP: trượt mượt, kéo theo ngón tay, tự chuyển theo thanh thời gian ----------
+// Thanh thời gian chạy bằng CSS; chạy hết thì sang slide sau (dừng khi chạm/giữ, rê chuột, banner khuất màn hình hoặc tab ẩn).
+// Vòng lặp vô tận: thêm bản sao slide đầu/cuối, tới bản sao thì nhảy về slide thật không hiệu ứng.
+const GIAY_BANNER = 6
+const giamChuyenDong = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
 function BannerSP({ ds, onLay, onMo, hhMax }) {
-  const [i, setI] = useState(0)
-  const [dung, setDung] = useState(false)
-  const cham = useRef(null)
   const n = ds.length
-  useEffect(() => { if (n < 2 || dung) return; const h = setInterval(() => setI((x) => (x + 1) % n), 5000); return () => clearInterval(h) }, [n, dung])
+  const [i, setI] = useState(0)
+  const [muot, setMuot] = useState(true)
+  const [keo, setKeo] = useState(0)
+  const [giu, setGiu] = useState(false)
+  const [tro, setTro] = useState(false)
+  const [ngoai, setNgoai] = useState(false)
+  const khung = useRef(null)
+  const cham = useRef(null)
+  const vuaKeo = useRef(false)
+  const tinh = giamChuyenDong()
+  useEffect(() => {
+    const el = khung.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(([e]) => setNgoai(!e.isIntersecting), { threshold: 0.35 })
+    io.observe(el)
+    const an = () => setNgoai(document.hidden)
+    document.addEventListener('visibilitychange', an)
+    return () => { io.disconnect(); document.removeEventListener('visibilitychange', an) }
+  }, [n])
   if (!n) return (
     <section className="banner trong">
       <div className="bn-chu"><span className="bn-eyebrow">NS Affiliate</span><h2>Chọn sản phẩm Nón Sơn, lấy link, nhận hoa hồng{hhMax ? ` đến ${fmtPhanTram(hhMax)}` : ''}.</h2>
         <Link to="/san-pham" className="btn trang">Xem sản phẩm<ArrowRight size={16} /></Link></div>
     </section>
   )
-  const g = ds[i % n]
-  const vuot = (e) => { cham.current = e.touches?.[0]?.clientX ?? null }
-  const tha = (e) => {
-    if (cham.current == null) return
-    const dx = (e.changedTouches?.[0]?.clientX ?? cham.current) - cham.current
-    if (Math.abs(dx) > 40) setI((x) => (x + (dx < 0 ? 1 : -1) + n) % n)
-    cham.current = null
+  const that = ((i % n) + n) % n
+  const toi = (j) => { setMuot(true); setI(j) }
+  const xongTruot = (e) => {
+    if (e.target !== e.currentTarget) return
+    if (i >= n || i < 0) { setMuot(false); setI(that) }
   }
+  const batDau = (e) => {
+    if (n < 2 || (e.pointerType === 'mouse' && e.button !== 0)) return
+    if (i >= n || i < 0) { setMuot(false); setI(that) }
+    cham.current = { x: e.clientX, y: e.clientY, t: Date.now(), ngang: null, id: e.pointerId }
+    vuaKeo.current = false
+    setGiu(true)
+  }
+  const di = (e) => {
+    const c = cham.current
+    if (!c) return
+    const dx = e.clientX - c.x
+    const dy = e.clientY - c.y
+    if (c.ngang == null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+      c.ngang = Math.abs(dx) > Math.abs(dy)
+      if (c.ngang) { try { e.currentTarget.setPointerCapture(c.id) } catch { /* bỏ qua */ } }
+    }
+    if (c.ngang) { vuaKeo.current = true; setMuot(false); setKeo(dx) }
+  }
+  const tha = () => {
+    const c = cham.current
+    cham.current = null
+    setGiu(false)
+    if (!c || !c.ngang) { setKeo(0); return }
+    const w = khung.current?.offsetWidth || 320
+    const nhanh = Math.abs(keo) / Math.max(1, Date.now() - c.t) > 0.45
+    const j = Math.abs(keo) > w * 0.18 || (nhanh && Math.abs(keo) > 24) ? i + (keo < 0 ? 1 : -1) : i
+    setKeo(0)
+    toi(j)
+  }
+  const chanBam = (e) => { if (vuaKeo.current) { e.stopPropagation(); e.preventDefault(); vuaKeo.current = false } }
+  const cac = n > 1 ? [ds[n - 1], ...ds, ds[0]] : ds
+  const dich = n > 1 ? i + 1 : 0
+  const chay = n > 1 && !tinh && !giu && !tro && !ngoai
   return (
-    <section className="banner" onMouseEnter={() => setDung(true)} onMouseLeave={() => setDung(false)} onTouchStart={vuot} onTouchEnd={tha} aria-roledescription="carousel">
-      <div className="bn-noi" key={g.id}>
-        <div className="bn-chu">
-          <span className="bn-eyebrow">Đang bán chạy · {g.danh_muc || doanDanhMuc(g)}</span>
-          <h2 onClick={() => onMo(g)}>{tenGon(g.ten)}</h2>
-          {g.hoa_hong != null && <p className="bn-hh">Hoa hồng <b>{fmtPhanTram(g.hoa_hong)}</b></p>}
-          <div className="bn-nut">
-            <button type="button" className="nut-lay" onClick={(e) => onLay(g, e)}><Link2 size={16} strokeWidth={2.4} />Lấy link</button>
-            <button type="button" className="btn kinh sm bn-ct" onClick={() => onMo(g)}>Chi tiết</button>
-          </div>
-        </div>
-        <button type="button" className="bn-anh" onClick={() => onMo(g)} aria-label={'Xem ' + tenGon(g.ten)}><Anh src={g.anh} alt="" /></button>
+    <section ref={khung} className="banner" aria-roledescription="carousel" aria-label="Sản phẩm bán chạy"
+      onPointerEnter={(e) => e.pointerType === 'mouse' && setTro(true)} onPointerLeave={(e) => e.pointerType === 'mouse' && setTro(false)}>
+      <div className="bn-ray" style={{ transform: `translate3d(calc(${-dich * 100}% + ${keo}px), 0, 0)`, transition: muot ? 'transform .62s cubic-bezier(.22,.8,.24,1)' : 'none' }}
+        onTransitionEnd={xongTruot} onPointerDown={batDau} onPointerMove={di} onPointerUp={tha} onPointerCancel={tha} onClickCapture={chanBam}>
+        {cac.map((g, k) => {
+          const on = k === dich
+          const uoc = uocHoaHong(g.gia, g.hoa_hong)
+          return (
+            <div key={k + '-' + g.id} className={'bn-o' + (on ? ' on' : '')} aria-hidden={!on} role="group" aria-label={`${that + 1} / ${n}`}>
+              <div className="bn-chu">
+                <NhanBac noi hang={g.hang_dm ?? g.hang} phu={g.danh_muc || doanDanhMuc(g)} />
+                <h2 onClick={() => onMo(g)}>{tenGon(g.ten)}</h2>
+                <div className="bn-so">
+                  {g.gia != null && <span className="bn-gia">{fmtTien(g.gia)}</span>}
+                  {g.hoa_hong != null && <span className="bn-hh">Hoa hồng <b>{fmtPhanTram(g.hoa_hong)}</b>{uoc != null && <i> ≈ {fmtTien(uoc)}</i>}</span>}
+                </div>
+                <div className="bn-nut">
+                  <button type="button" className="nut-lay" tabIndex={on ? 0 : -1} onClick={(e) => onLay(g, e)}><Link2 size={16} strokeWidth={2.4} />Lấy link</button>
+                  <button type="button" className="btn kinh sm bn-ct" tabIndex={on ? 0 : -1} onClick={() => onMo(g)}>Chi tiết</button>
+                </div>
+              </div>
+              <button type="button" className="bn-anh" tabIndex={on ? 0 : -1} onClick={() => onMo(g)} aria-label={'Xem ' + tenGon(g.ten)}><Anh src={g.anh} alt="" draggable={false} loading="eager" /></button>
+            </div>
+          )
+        })}
       </div>
-      {n > 1 && <div className="bn-cham">{ds.map((x, j) => <button key={x.id} type="button" aria-label={'Sản phẩm ' + (j + 1)} className={j === i % n ? 'on' : ''} onClick={() => setI(j)} />)}</div>}
+      {n > 1 && (
+        <div className="bn-tien" role="tablist" aria-label="Chọn sản phẩm">
+          {ds.map((x, j) => (
+            <button key={x.id} type="button" role="tab" aria-selected={j === that} aria-label={'Sản phẩm ' + (j + 1)} className={j < that ? 'qua' : j === that ? 'on' : ''} onClick={() => toi(j)}>
+              {j === that && <i key={that} style={{ animationDuration: GIAY_BANNER + 's', animationPlayState: chay ? 'running' : 'paused' }} onAnimationEnd={() => toi(i + 1)} />}
+            </button>
+          ))}
+        </div>
+      )}
     </section>
   )
 }
@@ -92,16 +166,52 @@ const LOI_TAT = [
   { to: '/tai-nguyen', ten: 'Hướng dẫn', ic: BookOpen }
 ]
 
+// Bảng xếp hạng trên trang chủ: Toàn hệ thống · Mũ bảo hiểm · Nón vải (hạng tương ứng từng bảng)
+const BXH = [{ v: 'tat_ca', t: 'Toàn hệ thống' }, { v: 'Mũ bảo hiểm', t: 'Mũ bảo hiểm' }, { v: 'Nón vải', t: 'Nón vải' }]
+function BangXepHang({ xh, onLay, onMo }) {
+  const [bang, setBang] = useState('tat_ca')
+  const cac = BXH.filter((b) => (xh[b.v] || []).length)
+  const ds = (xh[bang] || []).slice(0, 6)
+  if (!cac.length) return null
+  return (
+    <section className="bxh">
+      <div className="muc-dau">
+        <h2>Bảng xếp hạng</h2>
+        <Link to={bang === 'tat_ca' ? '/san-pham' : '/san-pham?dm=' + encodeURIComponent(bang)} className="lien-ket nho">Xem Top 10 <ArrowRight size={14} /></Link>
+      </div>
+      {cac.length > 1 && (
+        <div className="sp-dm bxh-tab" role="tablist" aria-label="Bảng xếp hạng" style={{ '--so': cac.length }}>
+          {cac.map((b) => <button key={b.v} type="button" role="tab" aria-selected={bang === b.v} className={bang === b.v ? 'on' : ''} onClick={() => setBang(b.v)}>{b.t}</button>)}
+        </div>
+      )}
+      <div className="luoi-sp bxh-luoi">
+        {ds.map((s) => <TheSanPham key={s.id} s={s} hang={bang === 'tat_ca' ? s.hang_all : s.hang_dm} onLay={onLay} onClick={() => onMo(s)} />)}
+      </div>
+    </section>
+  )
+}
+
 export default function TrangChu() {
   const { tv } = useAuth()
   const nav = useNavigate()
   const { data: d, loading, error, reload } = useAsync(() => rpc('fn_trang_chu'), [])
   const ll = useLayLink()
-  if (loading && !d) return <KhungTai dong={5} />
-  if (error && !d) return <LoiTai loi={error} thuLai={reload} />
+  const ten = String(tv.ho_ten || '').trim().split(/\s+/).pop()
+  const dau = (
+    <DauTrang lop="dau-tc"
+      trai={<Link to="/toi" className="dau-chao" aria-label="Tài khoản"><LogoO co={40} /><span className="gian"><small>Xin chào,</small><b className="cat">{ten}</b></span></Link>}
+      phai={<Link to="/toi" className="chip-cap-sang"><Star size={13} fill="currentColor" /><span className="cat">{tv.cap_do?.ten || 'Thành viên'}</span></Link>} />
+  )
+  if (loading && !d) return <>{dau}<KhungTai dong={5} /></>
+  if (error && !d) return <>{dau}<LoiTai loi={error} thuLai={reload} /></>
   const moSP = (g) => nav('/san-pham/' + g.id)
-  const noiBat = d.noi_bat || []
-  const banner = noiBat.filter((x) => (x.danh_muc || doanDanhMuc(x)) !== 'Phụ kiện').slice(0, 5)
+  const xh = d.xep_hang || {}
+  // Banner: xen kẽ TOP 1–3 Mũ bảo hiểm và TOP 1–3 Nón vải (nhãn ghi đúng hạng trong danh mục)
+  const mbh = (xh['Mũ bảo hiểm'] || []).slice(0, 3)
+  const nv = (xh['Nón vải'] || []).slice(0, 3)
+  let banner = []
+  for (let k = 0; k < 3; k++) { if (mbh[k]) banner.push(mbh[k]); if (nv[k]) banner.push(nv[k]) }
+  if (!banner.length) banner = (d.noi_bat || []).filter((x) => (x.danh_muc || doanDanhMuc(x)) !== 'Phụ kiện').slice(0, 5)
   const buoc = d.khoi_dong || []
   const conBuoc = buoc.filter((b) => !b.xong).length
   const viec = [
@@ -111,17 +221,11 @@ export default function TrangChu() {
     d.ho_tro_moi > 0 && { key: 'ht', to: '/ho-tro', ic: LifeBuoy, t: `${d.ho_tro_moi} yêu cầu hỗ trợ đã có trả lời`, p: 'Mở để xem' }
   ].filter(Boolean)
   const denBuoc = { xac_thuc: null, shopee: 'ket_noi', ho_so: '/toi?tab=ho_so', san_pham: '/san-pham', chien_dich: '/chien-dich' }
+  const coXh = BXH.some((b) => (xh[b.v] || []).length)
 
   return (
     <>
-      <div className="chao">
-        <div className="gian">
-          <p>Xin chào,</p>
-          <h1>{tv.ho_ten.split(' ').pop()}</h1>
-        </div>
-        <Link to="/toi" className="chip-cap-sang"><Star size={13} fill="currentColor" />{tv.cap_do?.ten || 'Thành viên'}</Link>
-      </div>
-
+      {dau}
       <NhacXacThuc />
       <BannerSP ds={banner} onLay={ll.lay} onMo={moSP} hhMax={d.hoa_hong_max} />
 
@@ -163,10 +267,10 @@ export default function TrangChu() {
         </section>
       )}
 
-      {noiBat.length > 0 && (
+      {coXh ? <BangXepHang xh={xh} onLay={ll.lay} onMo={moSP} /> : (d.noi_bat || []).length > 0 && (
         <section>
-          <div className="muc-dau"><h2>Sản phẩm nổi bật</h2><Link to="/san-pham" className="lien-ket nho">Xem tất cả {d.so_san_pham ? `(${d.so_san_pham})` : ''}</Link></div>
-          <div className="luoi-sp noi-bat">{noiBat.slice(0, 8).map((s) => <TheSanPham key={s.id} s={s} onLay={ll.lay} onClick={() => moSP(s)} />)}</div>
+          <div className="muc-dau"><h2>Sản phẩm nổi bật</h2><Link to="/san-pham" className="lien-ket nho">Xem tất cả</Link></div>
+          <div className="luoi-sp bxh-luoi">{d.noi_bat.slice(0, 6).map((s) => <TheSanPham key={s.id} s={s} hang={null} onLay={ll.lay} onClick={() => moSP(s)} />)}</div>
         </section>
       )}
 

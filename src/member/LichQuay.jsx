@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, CalendarDays, CalendarPlus, Clock, LocateFixed, MapPin, Navigation, QrCode, Search, Store, X, History } from 'lucide-react'
-import { Btn, Chips, Chon, Empty, Field, KhungTai, LoiTai, MaQR, Modal, Nhan, Sao, Segment, TrangDau, useToast, useXacNhan, Bao, Md, TextArea } from '../components/ui'
+import { CalendarDays, CalendarPlus, Clock, LocateFixed, MapPin, Navigation, QrCode, Search, Store, X, History } from 'lucide-react'
+import { Btn, Chips, Chon, Empty, Field, KhungTai, LoiTai, MaQR, Modal, Nhan, Sao, Segment, useToast, useXacNhan, Bao, Md, TextArea } from '../components/ui'
+import DauTrang from './DauTrang'
 import { useAuth } from '../components/auth'
 import { useAsync } from '../lib/hooks'
 import { rpc } from '../lib/api'
@@ -106,10 +107,10 @@ export function LichCuaToi() {
   const hien = tab === 'sap' ? sapToi : daQua
   return (
     <>
-      <TrangDau tieuDe="Lịch quay chụp" phu="Đặt lịch đến cửa hàng Nón Sơn để quay video, chụp ảnh sản phẩm thật."
-        phai={<Btn kieu="den" icon={CalendarPlus} onClick={() => nav('/lich-quay/dat')}>Đặt lịch</Btn>} />
+      <DauTrang tieu="Lịch quay chụp" phu="Tại cửa hàng Nón Sơn"
+        phai={<button type="button" className="dau-nut dau-chinh" onClick={() => nav('/lich-quay/dat')}><CalendarPlus size={17} strokeWidth={2.2} /><span>Đặt lịch</span></button>}
+        duoi={<Segment giaTri={tab} onChon={setTab} ds={[{ v: 'sap', t: 'Sắp tới', dem: sapToi.length }, { v: 'qua', t: 'Đã qua' }]} />} />
       <NhacXacThuc />
-      <div><Segment trang giaTri={tab} onChon={setTab} ds={[{ v: 'sap', t: 'Sắp tới', dem: sapToi.length }, { v: 'qua', t: 'Đã qua' }]} /></div>
       {loading && !data ? <KhungTai /> : error && !data ? <LoiTai loi={error} thuLai={reload} />
         : hien.length === 0
           ? <Empty icon={CalendarDays} tieuDe={tab === 'sap' ? 'Chưa có lịch sắp tới' : 'Chưa có lịch đã qua'} hanhDong={tab === 'sap' && <Btn kieu="den" icon={CalendarPlus} onClick={() => nav('/lich-quay/dat')}>Đặt lịch đầu tiên</Btn>}>Chọn cửa hàng gần bạn và khung giờ phù hợp.</Empty>
@@ -164,13 +165,12 @@ export function DatLich() {
       nav('/lich-quay?ma=' + kq.ma, { replace: true })
     } catch (e) { bao(e.message, 'loi'); setDang(false) }
   }
-  if (loading && !dsCh) return <KhungTai />
-  if (error && !dsCh) return <LoiTai loi={error} thuLai={reload} />
+  if (loading && !dsCh) return <><DauTrang lui="/lich-quay" tieu="Chọn cửa hàng" phu="Đặt lịch quay · Bước 1/4" /><KhungTai /></>
+  if (error && !dsCh) return <><DauTrang lui="/lich-quay" tieu="Đặt lịch quay" /><LoiTai loi={error} thuLai={reload} /></>
   return (
     <>
-      <div><button type="button" className="lien-ket" onClick={() => (buoc > 0 ? setBuoc(buoc - 1) : nav('/lich-quay'))}><ArrowLeft size={16} />{buoc > 0 ? 'Bước trước' : 'Lịch của tôi'}</button></div>
-      <TrangDau eyebrow={`Bước ${buoc + 1}/4`} tieuDe={['Chọn cửa hàng', 'Chọn ngày và giờ', 'Nhu cầu quay chụp', 'Xác nhận đặt lịch'][buoc]} />
-      <div className="buoc-dat">{[0, 1, 2, 3].map((i) => <i key={i} className={i <= buoc ? 'on' : ''} />)}</div>
+      <DauTrang lui={() => (buoc > 0 ? setBuoc(buoc - 1) : nav('/lich-quay'))} tieu={['Chọn cửa hàng', 'Chọn ngày và giờ', 'Nhu cầu quay chụp', 'Xác nhận đặt lịch'][buoc]}
+        phu={`Đặt lịch quay · Bước ${buoc + 1}/4`} duoi={<div className="buoc-dat">{[0, 1, 2, 3].map((i) => <i key={i} className={i <= buoc ? 'on' : ''} />)}</div>} />
       {!tv.email_xac_thuc && <NhacXacThuc />}
 
       {buoc === 0 && (

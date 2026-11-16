@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Bell, BookOpen, CalendarDays, Download, Gift, Home, LifeBuoy, LogOut, Megaphone, ShoppingBag, UserRound, Shield, Store } from 'lucide-react'
 import { CaiDatApp } from '../components/caidat'
 import { useAuth } from '../components/auth'
@@ -21,7 +21,7 @@ export function useCongKhai() {
   return ck
 }
 
-// Điều hướng: nhóm "Làm Affiliate" (việc chính) và "Của tôi"; trên điện thoại Sản phẩm nằm giữa thanh dưới, nổi bật
+// Điều hướng: nhóm "Làm Affiliate" (việc chính) và "Của tôi"; trên điện thoại Sản phẩm nằm giữa thanh dưới (ô biểu tượng màu thương hiệu)
 const MUC = [
   { to: '/', ten: 'Trang chủ', ic: Home, end: true, nhom: 'chinh' },
   { to: '/san-pham', ten: 'Sản phẩm', ic: ShoppingBag, nhom: 'chinh' },
@@ -44,7 +44,6 @@ const NAV_DUOI = [
 function KhungThanhVien({ children }) {
   const { tv, thoat, taiToi } = useAuth()
   const loc = useLocation()
-  const nav = useNavigate()
   // Làm mới số thông báo chưa đọc khi đổi trang (nhẹ, tối đa 1 lần/30 giây)
   useEffect(() => {
     const t = Date.now()
@@ -59,11 +58,6 @@ function KhungThanhVien({ children }) {
   )
   return (
     <div className="tv">
-      <header className="tv-top">
-        <Link to="/" aria-label="Trang chủ"><Brand toi={false} co="nho" /></Link>
-        <span className="gian" />
-        <IconBtn icon={Bell} nhan="Thông báo" co="sm" onClick={() => nav('/thong-bao')}>{chuaDoc > 0 && <span className="cham-do" />}</IconBtn>
-      </header>
       <div className="tv-khung">
         <aside className="tv-sb" aria-label="Menu thành viên">
           <Link to="/" className="brand-sb" aria-label="Trang chủ"><Brand toi={false} /></Link>
@@ -84,9 +78,9 @@ function KhungThanhVien({ children }) {
       </div>
       <nav className={'tv-nav' + (/^\/san-pham\/[^/]+/.test(loc.pathname) ? ' an' : '')} aria-label="Menu nhanh">
         {NAV_DUOI.map((m) => (
-          <NavLink key={m.to} to={m.to} end={m.end} className={({ isActive }) => (m.giua ? 'giua' : '') + (isActive ? ' on' : '')}>
-            {m.giua ? <span className="tron"><m.ic size={22} strokeWidth={2.2} /></span> : <m.ic size={21} strokeWidth={2} />}
-            <span>{m.ten}</span>
+          <NavLink key={m.to} to={m.to} end={m.end} className={({ isActive }) => [m.giua ? 'giua' : '', isActive ? 'on' : ''].filter(Boolean).join(' ')}>
+            <span className="nv-ic"><m.ic size={m.giua ? 21 : 20} strokeWidth={m.giua ? 2.3 : 2} /></span>
+            <span className="nv-ten">{m.ten}</span>
           </NavLink>
         ))}
       </nav>
