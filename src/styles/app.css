@@ -430,14 +430,14 @@ a.kpi:hover, button.kpi:hover { transform: translateY(-2px); box-shadow: var(--s
 .field input.sai { color: var(--err); }
 
 /* Tiêu đề trang giới thiệu — IN HOA, 3 dòng: dòng mảnh trắng + 2 dòng đậm ánh hồng–champagne */
-.lp-eyebrow { display: inline-flex; align-items: center; gap: 14px; font-size: 12px; font-weight: 600; letter-spacing: .34em; text-transform: uppercase;
+.lp-eyebrow { display: inline-flex; align-items: center; gap: 14px; padding: .3em 0; font-size: 12px; font-weight: 600; letter-spacing: .34em; text-transform: uppercase;
   background: linear-gradient(90deg, #D9B26A, #FFF1CF 50%, #D9B26A); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .lp-eyebrow i { width: 40px; height: 1px; flex: none; background: linear-gradient(90deg, transparent, #D9B26A); }
 .lp-eyebrow i:last-child { transform: scaleX(-1); }
 .lp-hero h1.lp-tieu { margin-top: 26px; text-transform: uppercase; font-size: clamp(25px, 6.6vw, 44px); line-height: 1.12; letter-spacing: .01em; }
 .lp-tieu > span { display: block; }
 .lp-tieu .mong { font-weight: 300; color: #fff; letter-spacing: .14em; margin-bottom: 6px; }
-.lp-tieu .dam { font-weight: 800; letter-spacing: .005em; padding-bottom: .04em;
+.lp-tieu .dam { font-weight: 800; letter-spacing: .005em; padding: .2em 0 .06em; margin: -.2em 0 -.06em; /* chừa chỗ dấu chồng (Ể, Ế) để nền chữ không cắt dấu */
   background: linear-gradient(100deg, #FF8CC0 0%, #FFD3E7 30%, #F3DDB0 50%, #FF8CC0 75%, #FFD3E7 100%); background-size: 240% 100%;
   -webkit-background-clip: text; background-clip: text; color: transparent; animation: lp-anh 9s ease-in-out infinite; }
 @keyframes lp-anh { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
