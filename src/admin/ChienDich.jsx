@@ -163,7 +163,7 @@ function SuaCD({ id, dong, taiLai }) {
                 <Chon nhan="Loại chiến dịch" ds={dsLoai} giaTri={f.loai} onChon={doi('loai')} />
                 <Chon nhan="Nền tảng" ds={[{ v: 'shopee', t: 'Shopee' }, { v: 'tiktok', t: 'TikTok Shop' }, { v: 'lazada', t: 'Lazada' }, { v: 'da_kenh', t: 'Đa kênh' }]} giaTri={f.nen_tang} onChon={doi('nen_tang')} />
                 <ONgayGio nhan="Bắt đầu" giaTri={f.bat_dau} onDoi={doi('bat_dau')} goiY="Để trống = bắt đầu ngay" />
-                <ONgayGio nhan="Kết thúc" giaTri={f.ket_thuc} onDoi={doi('ket_thuc')} goiY="Để trống = không giới hạn" />
+                <ONgayGio nhan="Kết thúc" gioMacDinh="23:59" giaTri={f.ket_thuc} onDoi={doi('ket_thuc')} goiY="Để trống = không giới hạn" />
                 <Field nhan="Số suất tối đa" inputMode="numeric" value={f.so_suat ?? ''} onChange={(e) => setF({ ...f, so_suat: e.target.value.replace(/\D/g, '') })} goiY="Để trống = không giới hạn" />
                 <div className="cot" style={{ gap: 8 }}>
                   <DongSwitch nhan="Cần duyệt đăng ký" moTa={f.can_duyet ? 'Đội Affiliate duyệt từng người' : 'Thành viên tham gia ngay'} on={f.can_duyet} onDoi={(v) => setF({ ...f, can_duyet: v })} />
@@ -206,7 +206,7 @@ function SuaCD({ id, dong, taiLai }) {
                   <div className="luoi-form">
                     <Field kieu="gon" nhan="Tên nhiệm vụ" value={n.ten} onChange={(e) => sua({ ten: e.target.value })} placeholder="VD: Đăng 1 video TikTok review sản phẩm" />
                     <Field kieu="gon" nhan="Số bài cần nộp" inputMode="numeric" value={n.so_bai} onChange={(e) => sua({ so_bai: e.target.value.replace(/\D/g, '') })} />
-                    <ONgayGio nhan="Hạn nộp" giaTri={n.han_nop} onDoi={(v) => sua({ han_nop: v })} />
+                    <ONgayGio nhan="Hạn nộp" gioMacDinh="23:59" giaTri={n.han_nop} onDoi={(v) => sua({ han_nop: v })} />
                     <Field kieu="gon" nhan="Mô tả / yêu cầu" value={n.mo_ta || ''} onChange={(e) => sua({ mo_ta: e.target.value })} />
                     {n.so_nop > 0 && <span className="nho muted toan">{n.so_nop} bài đã nộp · nhiệm vụ có bài nộp không bị xóa</span>}
                   </div>
@@ -293,7 +293,7 @@ function SuaUD({ ud, dong, xong }) {
           <Chon nhan="Loại ưu đãi" ds={Object.entries(LOAI_UU_DAI).map(([v, t]) => ({ v, t }))} giaTri={f.loai} onChon={doi('loai')} />
           <Field nhan="Liên kết (không bắt buộc)" value={f.lien_ket || ''} onChange={doi('lien_ket')} placeholder="/chien-dich/… hoặc https://…" />
           <ONgayGio nhan="Hiệu lực từ" giaTri={f.bat_dau} onDoi={doi('bat_dau')} />
-          <ONgayGio nhan="Hiệu lực đến" giaTri={f.ket_thuc} onDoi={doi('ket_thuc')} />
+          <ONgayGio nhan="Hiệu lực đến" gioMacDinh="23:59" giaTri={f.ket_thuc} onDoi={doi('ket_thuc')} />
           <div className="toan"><Field nhan="Mô tả ngắn" value={f.mo_ta || ''} onChange={doi('mo_ta')} /></div>
         </div>
         {f.loai === 'uu_tien_lich' && <Bao kieu="ok">Thành viên có ưu đãi này được đặt lịch quay xa hơn và sát giờ hơn (theo “Lịch mặc định” ở Hệ thống → Cấu hình).</Bao>}

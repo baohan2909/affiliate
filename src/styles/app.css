@@ -419,3 +419,31 @@ a.kpi:hover, button.kpi:hover { transform: translateY(-2px); box-shadow: var(--s
 @media (min-width: 900px) { .loc-cuon .chips { flex-wrap: wrap; } .loc-cuon { overflow: visible; flex-wrap: wrap; } }
 .icon-btn.toi { background: rgba(255,255,255,.08); color: rgba(255,255,255,.8); border: none; box-shadow: none; }
 .icon-btn.toi:hover { background: rgba(255,255,255,.18); color: #fff; }
+
+/* Ô nhập ngày dd/mm/yyyy + nút lịch, giờ HH:MM (không phụ thuộc ngôn ngữ trình duyệt) */
+.nhap-ngay { position: relative; display: flex; align-items: center; gap: 6px; }
+.nhap-ngay input[type="text"] { flex: 1; }
+.nhap-ngay .lich-btn { flex: none; width: 30px; height: 30px; margin: -6px -6px -6px 0; border: none; border-radius: 10px; background: transparent; color: var(--muted-2); display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
+.nhap-ngay .lich-btn:hover { background: rgba(23,17,26,.06); color: var(--ink); }
+.nhap-ngay .an-lich { position: absolute; right: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; border: 0; padding: 0; }
+.nhap-ngay .sai-chu { position: absolute; right: 34px; font-size: 11.5px; font-weight: 700; color: var(--err); }
+.field input.sai { color: var(--err); }
+
+/* Tiêu đề trang giới thiệu — chữ in hoa, ánh hồng–champagne */
+.lp-eyebrow { display: inline-flex; align-items: center; gap: 14px; font-size: 12px; font-weight: 700; letter-spacing: .32em; text-transform: uppercase;
+  background: linear-gradient(90deg, #E9C77B, #FFF1CF 50%, #E9C77B); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lp-eyebrow i { width: 36px; height: 1px; flex: none; background: linear-gradient(90deg, transparent, #E9C77B); }
+.lp-eyebrow i:last-child { transform: scaleX(-1); }
+.lp-hero h1.lp-tieu { margin-top: 20px; text-transform: uppercase; font-size: clamp(30px, 4.3vw, 50px); line-height: 1.16; letter-spacing: .01em; }
+.lp-tieu .mong { display: block; font-weight: 300; color: #fff; letter-spacing: .06em; }
+.lp-tieu .dam { display: block; font-weight: 800; margin-top: 4px;
+  background: linear-gradient(100deg, #FF8CC0 0%, #FFD3E7 32%, #F6E3B4 52%, #FF8CC0 78%, #FFD3E7 100%); background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent; animation: lp-anh 7s ease-in-out infinite;
+  filter: drop-shadow(0 6px 26px rgba(224,21,126,.32)); }
+@keyframes lp-anh { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+.lp-vach { display: flex; align-items: center; gap: 10px; margin-top: 26px; }
+.lp-vach i { width: 56px; height: 1px; background: linear-gradient(90deg, transparent, rgba(233,199,123,.85)); }
+.lp-vach i:last-child { transform: scaleX(-1); }
+.lp-vach b { width: 7px; height: 7px; transform: rotate(45deg); background: #E9C77B; box-shadow: 0 0 12px rgba(233,199,123,.7); }
+@media (max-width: 520px) { .lp-eyebrow { font-size: 10.5px; letter-spacing: .26em; gap: 10px; } .lp-eyebrow i { width: 22px; } .lp-tieu .mong { letter-spacing: .04em; } }
+@media (prefers-reduced-motion: reduce) { .lp-tieu .dam { animation: none; } }

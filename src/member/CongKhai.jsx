@@ -31,9 +31,11 @@ export function LandingPage() {
           </nav>
           <div className="lp-hero-noi">
             <div>
-              <p className="eyebrow sang">Cộng đồng Affiliate chính thức</p>
-              <h1 style={{ marginTop: 14 }}>{tieu2.length ? <>{tieu1} <b>thu nhập {tieu2.join(' thu nhập ')}</b></> : <b>{tieu1}</b>}</h1>
-              <p className="mo-ta">{gt.mo_ta || 'Sản phẩm, chiến dịch, quay chụp tại cửa hàng và ưu đãi dành riêng cho thành viên — tất cả ở một nơi.'}</p>
+              <p className="lp-eyebrow"><i />Cộng đồng Affiliate chính thức<i /></p>
+              <h1 className="lp-tieu">
+                {tieu2.length ? <><span className="mong">{tieu1}</span><span className="dam">thu nhập {tieu2.join(' thu nhập ')}</span></> : <span className="dam">{tieu1}</span>}
+              </h1>
+              <div className="lp-vach" aria-hidden="true"><i /><b /><i /></div>
               <div className="nut">
                 <Link to="/dang-ky" className="btn den lg co-orb">Đăng ký thành viên<span className="orb"><ArrowRight size={17} strokeWidth={2.6} /></span></Link>
                 <Link to="/dang-nhap" className="btn vien-sang lg">Tôi đã có tài khoản</Link>
@@ -69,7 +71,7 @@ export function LandingPage() {
           <p className="eyebrow">Bắt đầu trong 3 bước</p>
           <h2 style={{ marginTop: 8 }}>Từ <b>đăng ký</b> đến <b>video đầu tiên</b></h2>
           <div className="lp-buoc">
-            <div className="b"><div className="so">01</div><h3>Đăng ký thành viên</h3><p>Tạo tài khoản miễn phí, xác nhận email và chọn kinh nghiệm của bạn.</p></div>
+            <div className="b"><div className="so">01</div><h3>Đăng ký thành viên</h3><p>Tạo tài khoản miễn phí trong 2 bước, chọn kinh nghiệm của bạn.</p></div>
             <div className="b"><div className="so">02</div><h3>Chọn sản phẩm</h3><p>Xem Top sản phẩm, lấy link gốc và tài nguyên hình ảnh chính thức.</p></div>
             <div className="b"><div className="so">03</div><h3>Làm nội dung</h3><p>Quay video, đặt lịch đến cửa hàng nếu cần và gắn link tiếp thị của bạn.</p></div>
           </div>
@@ -180,14 +182,14 @@ export function DangKy() {
       if (f.ho_ten.trim().length < 2) return 'Vui lòng nhập họ và tên.'
       if (!/^0\d{9}$/.test(f.dien_thoai.replace(/\D/g, ''))) return 'Số điện thoại cần 10 số, bắt đầu bằng 0.'
       if (!f.tinh_thanh) return 'Chọn tỉnh/thành bạn đang sống.'
+      if (!f.dong_y) return 'Bạn cần đồng ý Điều khoản và Chính sách dữ liệu.'
     }
-    if (buoc === 2 && !f.dong_y) return 'Bạn cần đồng ý Điều khoản và Chính sách dữ liệu.'
     return ''
   }
   const tiep = async () => {
     const l = kiem(); setLoi(l)
     if (l) return
-    if (buoc < 2) { setBuoc(buoc + 1); return }
+    if (buoc < 1) { setBuoc(1); return }
     setDang(true)
     try {
       const kq = await taiKhoan('dang_ky', {
@@ -197,7 +199,7 @@ export function DangKy() {
       })
       await dangNhap(f.email.trim(), f.mat_khau)
       await taiToi()
-      bao(`Chào mừng ${f.ho_ten.split(' ').pop()}! Mã thành viên ${kq.ma}. Kiểm tra email để xác nhận tài khoản.`, 'hong', { ms: 6000 })
+      bao(`Chào mừng ${f.ho_ten.trim().split(' ').pop()}! Mã thành viên của bạn: ${kq.ma}.${ck?.bat_buoc_xac_thuc ? ' Kiểm tra email để xác nhận tài khoản.' : ''}`, 'hong', { ms: 6000 })
       nav('/', { replace: true })
     } catch (e) { setLoi(e.message); setDang(false) }
   }
@@ -207,7 +209,7 @@ export function DangKy() {
       phai={<Link to="/dang-nhap" className="btn vien-sang sm">Đăng nhập</Link>}
       chan={<>Đã có tài khoản? <Link to="/dang-nhap">Đăng nhập</Link></>}>
       <div className="cot" style={{ gap: 14 }}>
-        <ThanhTienDo pct={((buoc + 1) / 3) * 100} nhan={['Tài khoản', 'Thông tin cá nhân', 'Kinh nghiệm & kênh'][buoc]} so={<b>{buoc + 1}/3</b>} />
+        <ThanhTienDo pct={((buoc + 1) / 2) * 100} nhan={['Tài khoản đăng nhập', 'Thông tin của bạn'][buoc]} so={<b>{buoc + 1}/2</b>} />
         <input className="bay" tabIndex={-1} autoComplete="off" value={f.web} onChange={(e) => dat('web', e.target.value)} aria-hidden="true" />
         {buoc === 0 && <>
           <Field nhan="Email" batBuoc type="email" inputMode="email" autoComplete="email" value={f.email} onChange={(e) => dat('email', e.target.value)} goiY="Dùng để đăng nhập và nhận thông báo chính thức" />
@@ -218,10 +220,8 @@ export function DangKy() {
           <Field nhan="Họ và tên" batBuoc autoComplete="name" value={f.ho_ten} onChange={(e) => dat('ho_ten', e.target.value)} />
           <Field nhan="Số điện thoại" batBuoc type="tel" inputMode="tel" autoComplete="tel" value={f.dien_thoai} onChange={(e) => dat('dien_thoai', e.target.value)} />
           <Field nhan="Ngày sinh" type="date" value={f.ngay_sinh} onChange={(e) => dat('ngay_sinh', e.target.value)} />
-          <Chon nhan="Tỉnh / thành đang sống" batBuoc ds={tinh} giaTri={f.tinh_thanh} onChon={(v) => dat('tinh_thanh', v)} />
-        </>}
-        {buoc === 2 && <>
-          <span className="nhan-nhom">Kinh nghiệm làm Affiliate</span>
+          <Chon nhan="Tỉnh / thành đang sống" batBuoc ds={tinh} giaTri={f.tinh_thanh} onChon={(v) => dat('tinh_thanh', v)} tim />
+          <span className="nhan-nhom" style={{ marginTop: 6 }}>Kinh nghiệm làm Affiliate</span>
           <Chips ds={[{ v: 'moi', t: 'Người mới bắt đầu' }, { v: 'co_kinh_nghiem', t: 'Đã có kinh nghiệm' }]} giaTri={f.kinh_nghiem} onChon={(v) => dat('kinh_nghiem', v)} tick />
           {f.kinh_nghiem === 'moi' && <Bao kieu="ok">Không sao cả! Trang chủ của bạn sẽ có lộ trình 5 bước và bài hướng dẫn từ cơ bản.</Bao>}
           {f.kinh_nghiem === 'co_kinh_nghiem' && <>
@@ -247,7 +247,7 @@ export function DangKy() {
         {loi && <Bao kieu="loi">{loi}</Bao>}
         <div className="hang" style={{ gap: 10 }}>
           {buoc > 0 && <Btn kieu="mem" co="lg" onClick={() => { setLoi(''); setBuoc(buoc - 1) }} disabled={dang}>Quay lại</Btn>}
-          <Btn kieu="den" co="lg" className="gian" loading={dang} onClick={tiep}>{buoc < 2 ? 'Tiếp tục' : 'Hoàn tất đăng ký'}</Btn>
+          <Btn kieu="den" co="lg" className="gian" loading={dang} onClick={tiep}>{buoc < 1 ? 'Tiếp tục' : 'Hoàn tất đăng ký'}</Btn>
         </div>
       </div>
     </KhungXT>

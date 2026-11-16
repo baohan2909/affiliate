@@ -46,19 +46,76 @@ export function IconBtn({ icon: Icon, nhan, kieu = '', co = '', size = 18, class
   )
 }
 
+// ---------- Ô ngày dd/mm/yyyy và giờ HH:MM (24h) — không phụ thuộc ngôn ngữ trình duyệt ----------
+const isoSangNgay = (iso) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? `${m[3]}/${m[2]}/${m[1]}` : '' }
+export function ngaySangIso(s) {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s || '')
+  if (!m) return null
+  const d = new Date(Date.UTC(+m[3], +m[2] - 1, +m[1]))
+  if (d.getUTCFullYear() !== +m[3] || d.getUTCMonth() !== +m[2] - 1 || d.getUTCDate() !== +m[1] || +m[3] < 1900) return null
+  return `${m[3]}-${m[2]}-${m[1]}`
+}
+const motNgay = (raw) => { const d = raw.replace(/\D/g, '').slice(0, 8); return d.length > 4 ? `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}` : d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d }
+const motGio = (raw) => { const d = raw.replace(/\D/g, '').slice(0, 4); return d.length > 2 ? `${d.slice(0, 2)}:${d.slice(2)}` : d }
+const gioHopLe = (s) => /^([01]\d|2[0-3]):[0-5]\d$/.test(s || '')
+
+function ONhapNgay({ value, onChange, disabled, className, id, name, autoFocus, required }) {
+  const [chu, setChu] = useState(isoSangNgay(value))
+  const lich = useRef(null)
+  useEffect(() => { if ((ngaySangIso(chu) || '') !== (value || '').slice(0, 10)) setChu(isoSangNgay(value)) }, [value]) // eslint-disable-line react-hooks/exhaustive-deps
+  const phat = (v) => onChange && onChange({ target: { value: v } })
+  const doi = (e) => {
+    const t = motNgay(e.target.value)
+    setChu(t)
+    if (!t) phat('')
+    else { const iso = ngaySangIso(t); if (iso) phat(iso); else if (t.length < 10) phat('') }
+  }
+  const sai = chu.length === 10 && !ngaySangIso(chu)
+  return (
+    <span className="nhap-ngay">
+      <input type="text" inputMode="numeric" autoComplete="off" placeholder="dd/mm/yyyy" maxLength={10} value={chu} onChange={doi}
+        disabled={disabled} className={[className, sai ? 'sai' : ''].filter(Boolean).join(' ') || undefined} id={id} name={name} autoFocus={autoFocus} required={required} aria-invalid={sai || undefined} />
+      {!disabled && (
+        <button type="button" className="lich-btn" aria-label="Chọn trên lịch" tabIndex={-1}
+          onClick={(e) => { e.preventDefault(); const el = lich.current; if (!el) return; try { el.showPicker() } catch { el.focus(); el.click() } }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="3" /><path d="M3 9.5h18M8 2.5v4M16 2.5v4" /></svg>
+        </button>
+      )}
+      <input ref={lich} type="date" tabIndex={-1} aria-hidden="true" className="an-lich" value={(value || '').slice(0, 10)}
+        onChange={(e) => { setChu(isoSangNgay(e.target.value)); phat(e.target.value) }} />
+      {sai && <span className="sai-chu">Ngày không hợp lệ</span>}
+    </span>
+  )
+}
+
+function ONhapGio({ value, onChange, disabled, className, id, name }) {
+  const [chu, setChu] = useState((value || '').slice(0, 5))
+  useEffect(() => { if ((value || '').slice(0, 5) !== (gioHopLe(chu) ? chu : '')) setChu((value || '').slice(0, 5)) }, [value]) // eslint-disable-line react-hooks/exhaustive-deps
+  const doi = (e) => {
+    const t = motGio(e.target.value)
+    setChu(t)
+    if (!t) onChange && onChange({ target: { value: '' } })
+    else if (gioHopLe(t)) onChange && onChange({ target: { value: t } })
+  }
+  const sai = chu.length === 5 && !gioHopLe(chu)
+  return <input type="text" inputMode="numeric" autoComplete="off" placeholder="HH:MM" maxLength={5} value={chu} onChange={doi} disabled={disabled}
+    className={[className, sai ? 'sai' : ''].filter(Boolean).join(' ') || undefined} id={id} name={name} aria-invalid={sai || undefined} />
+}
+
 export function Field({ nhan, batBuoc, loi, goiY, kieu, className = '', children, ...p }) {
+  const o = children || (p.type === 'date' ? <ONhapNgay {...p} /> : p.type === 'time' ? <ONhapGio {...p} /> : <input {...p} />)
   return (
     <div>
       <label className={['field', kieu, loi ? 'loi' : '', className].join(' ')}>
         <span className="nhan">{nhan}{batBuoc && <i>*</i>}</span>
-        {children || <input {...p} className={[p.className, p.type === 'date' && !p.value ? 'trong' : ''].filter(Boolean).join(' ') || undefined} />}
-        {!children && p.type === 'date' && !p.value && <span className="date-goi">dd/mm/yyyy</span>}
+        {o}
         {goiY && <div className="goi-y">{goiY}</div>}
       </label>
       {loi && typeof loi === 'string' && <div className="loi-chu">{loi}</div>}
     </div>
   )
 }
+export { ONhapNgay, ONhapGio }
 
 export function TextArea({ nhan, batBuoc, goiY, ...p }) {
   return <Field nhan={nhan} batBuoc={batBuoc} goiY={goiY}><textarea {...p} /></Field>

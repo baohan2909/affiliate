@@ -1,7 +1,7 @@
 // Thành phần dùng chung cho trang quản trị
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ImagePlus, Plus, Trash2, Users, X, Search } from 'lucide-react'
-import { Btn, Chips, Chon, CotSX, Field, IconBtn, Spinner, useToast } from '../components/ui'
+import { Btn, Chips, Chon, CotSX, Field, IconBtn, ONhapGio, ONhapNgay, Spinner, useToast } from '../components/ui'
 import { useSapXep, useDebounced } from '../lib/hooks'
 import { rpc, taiAnhLen } from '../lib/api'
 import { choInputGio, tuInputGio, khop, fmtSo } from '../lib/format'
@@ -72,9 +72,22 @@ export function OTim({ giaTri, onDoi, goiY = 'Tìm…' }) {
   return <label className="input-tron"><Search size={17} /><input placeholder={goiY} value={giaTri} onChange={(e) => onDoi(e.target.value)} /></label>
 }
 
-// ---------- Ô ngày giờ (datetime-local ↔ ISO) ----------
-export function ONgayGio({ nhan, giaTri, onDoi, goiY }) {
-  return <Field nhan={nhan} type="datetime-local" goiY={goiY} value={choInputGio(giaTri)} onChange={(e) => onDoi(tuInputGio(e.target.value))} />
+// ---------- Ô ngày giờ: dd/mm/yyyy + HH:MM (giờ máy người dùng) ↔ ISO ----------
+export function ONgayGio({ nhan, giaTri, onDoi, goiY, gioMacDinh = '00:00' }) {
+  const local = choInputGio(giaTri) // yyyy-mm-ddTHH:MM
+  const [ngay, setNgay] = useState(local.slice(0, 10))
+  const [gio, setGio] = useState(local.slice(11, 16))
+  useEffect(() => { const l = choInputGio(giaTri); setNgay(l.slice(0, 10)); setGio(l.slice(11, 16)) }, [giaTri])
+  const phat = (n, g) => onDoi(n ? tuInputGio(`${n}T${g || gioMacDinh}`) : '')
+  return (
+    <Field nhan={nhan} goiY={goiY}>
+      <span className="hang" style={{ gap: 10 }}>
+        <span style={{ flex: '1 1 0', minWidth: 0 }}><ONhapNgay value={ngay} onChange={(e) => { setNgay(e.target.value); phat(e.target.value, gio) }} /></span>
+        <span className="muted nho" style={{ flex: 'none' }}>lúc</span>
+        <span style={{ width: 64, flex: 'none' }}><ONhapGio value={gio} onChange={(e) => { setGio(e.target.value); phat(ngay, e.target.value) }} /></span>
+      </span>
+    </Field>
+  )
 }
 
 // ---------- Tải ảnh công khai (hoặc dán link ảnh) ----------

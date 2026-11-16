@@ -155,6 +155,7 @@ function CauHinh() {
       <TheCH tieuDe="Tỉnh / thành phố" moTa="Danh sách chọn ở form đăng ký. Mỗi dòng một tỉnh." khoa="tinh_thanh" onLuu={() => ds(c.tinh_thanh)}>
         <TextArea nhan="Tỉnh / thành" rows={8} value={c.tinh_thanh} onChange={(e) => dat('tinh_thanh', e.target.value)} />
       </TheCH>
+      {laQT && <XacThucEmail batSan={d.bat_buoc_xac_thuc === true} />}
       {laQT && <>
         <TheCH tieuDe="Điều khoản tham gia" moTa="Bản nháp — cần pháp chế duyệt trước khi chạy chính thức." khoa="dieu_khoan" onLuu={() => c.dieu_khoan}>
           <TextArea nhan="Nội dung (hỗ trợ ## tiêu đề, - gạch đầu dòng)" rows={10} value={c.dieu_khoan} onChange={(e) => dat('dieu_khoan', e.target.value)} />
@@ -166,6 +167,23 @@ function CauHinh() {
           <Field nhan="URL" value={c.app_url} onChange={(e) => dat('app_url', e.target.value)} />
         </TheCH>
       </>}
+    </div>
+  )
+}
+
+function XacThucEmail({ batSan }) {
+  const bao = useToast()
+  const xn = useXacNhan()
+  const [bat, setBat] = useState(batSan)
+  const doi = async (v) => {
+    if (!(await xn({ tieuDe: v ? 'Bật bắt buộc xác thực email?' : 'Tắt bắt buộc xác thực email?',
+      moTa: v ? 'Thành viên chưa xác nhận email sẽ không đặt lịch, đăng ký chiến dịch, nộp bài được cho tới khi bấm link trong thư. Cần máy gửi thư đang chạy.' : 'Thành viên đăng ký xong dùng được ngay, không cần bấm link xác nhận.', nut: v ? 'Bật' : 'Tắt' }))) return
+    try { await rpc('fn_qt_cau_hinh_luu', { p_khoa: 'bat_buoc_xac_thuc', p_gia_tri: v }); setBat(v); lamMoiCauHinh(); bao(v ? 'Đã bật bắt buộc xác thực email' : 'Đã tắt bắt buộc xác thực email') } catch (e) { bao(e.message, 'loi') }
+  }
+  return (
+    <div className="card cot" style={{ gap: 10 }}>
+      <div className="dau-the"><h2>Xác thực email khi đăng ký</h2></div>
+      <DongSwitch nhan="Bắt buộc xác thực email" moTa={bat ? 'Đang BẬT: thành viên phải bấm link trong email trước khi dùng các tính năng chính' : 'Đang TẮT: đăng ký xong dùng được ngay (giai đoạn đầu)'} on={bat} onDoi={doi} />
     </div>
   )
 }
