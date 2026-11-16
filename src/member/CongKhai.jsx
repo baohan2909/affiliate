@@ -22,9 +22,9 @@ export function LandingPage() {
   return (
     <div className="lp">
       <section className="lp-hero">
-        <div className="glow hong" style={{ width: 460, height: 460, right: -140, top: -160, opacity: 0.55 }} />
-        <div className="glow vang" style={{ width: 260, height: 260, left: -80, bottom: -120, opacity: 0.25 }} />
+        <div className="nen-loang" aria-hidden="true" />
         <div className="lp-wrap">
+          <div className="bong-cum" aria-hidden="true"><span className="bong-tron b1" /><span className="bong-tron b2" /></div>
           <nav className="lp-nav">
             <Brand />
             <span className="gian" />
@@ -32,12 +32,12 @@ export function LandingPage() {
           </nav>
           <div className="lp-hero-noi">
             <div>
-              <p className="lp-eyebrow"><i />Cộng đồng Affiliate chính thức<i /></p>
-              <h1 className="lp-tieu">
-                {dong.length > 1 && <span className="mong">{dong[0]}</span>}
-                {(dong.length > 1 ? dong.slice(1) : dong).map((x, i) => <span key={i} className="dam">{x}</span>)}
+              <p className="eyebrow sang">Cộng đồng Affiliate chính thức</p>
+              <h1 className="hero-chu" aria-label={dong.join(' ')}>
+                {dong.length > 2 && <span className="d1">{dong[0]}</span>}
+                {dong.length > 1 && <span className="d2">{dong[dong.length - 2]}</span>}
+                <span className="d3">{dong[dong.length - 1]}</span>
               </h1>
-              <div className="lp-vach" aria-hidden="true"><i /><b /><i /></div>
               <div className="nut">
                 <Link to="/dang-ky" className="btn den lg co-orb">Đăng ký thành viên<span className="orb"><ArrowRight size={17} strokeWidth={2.6} /></span></Link>
                 <Link to="/dang-nhap" className="btn vien-sang lg">Tôi đã có tài khoản</Link>
@@ -107,8 +107,7 @@ export function LandingPage() {
 function KhungXT({ tieuDe, phu, children, phai, chan }) {
   return (
     <div className="xt">
-      <div className="glow hong" style={{ width: 360, height: 360, right: -130, top: -140, opacity: 0.55 }} />
-      <div className="glow vang" style={{ width: 200, height: 200, left: -90, bottom: 40, opacity: 0.2 }} />
+      <div className="nen-loang" aria-hidden="true"><span className="bong-tron b1" /><span className="bong-tron b2" /></div>
       <div className="xt-dau"><Link to="/" aria-label="Trang chủ"><Brand /></Link>{phai}</div>
       <div className="xt-hop">
         <h1>{tieuDe}</h1>

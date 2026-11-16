@@ -267,7 +267,6 @@ button:focus:not(:focus-visible) { outline: none; }
 /* ============ TRANG GIỚI THIỆU & TÀI KHOẢN ============ */
 .lp { min-height: 100vh; background: var(--bg); }
 .lp-hero { position: relative; overflow: hidden; isolation: isolate; background: var(--plum); color: #fff; padding: calc(18px + env(safe-area-inset-top)) 0 64px; }
-.lp-hero .glow { z-index: -1; }
 .lp-wrap { max-width: 1120px; margin: 0 auto; padding: 0 22px; }
 .lp-nav { display: flex; align-items: center; gap: 12px; }
 .lp-hero-noi { display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px; align-items: center; margin-top: 56px; }
@@ -429,25 +428,54 @@ a.kpi:hover, button.kpi:hover { transform: translateY(-2px); box-shadow: var(--s
 .nhap-ngay .sai-chu { position: absolute; right: 34px; font-size: 11.5px; font-weight: 700; color: var(--err); }
 .field input.sai { color: var(--err); }
 
-/* Tiêu đề trang giới thiệu — IN HOA, 3 dòng: dòng mảnh trắng + 2 dòng đậm ánh hồng–champagne */
-.lp-eyebrow { display: inline-flex; align-items: center; gap: 14px; padding: .3em 0; font-size: 12px; font-weight: 600; letter-spacing: .34em; text-transform: uppercase;
-  background: linear-gradient(90deg, #D9B26A, #FFF1CF 50%, #D9B26A); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.lp-eyebrow i { width: 40px; height: 1px; flex: none; background: linear-gradient(90deg, transparent, #D9B26A); }
-.lp-eyebrow i:last-child { transform: scaleX(-1); }
-.lp-hero h1.lp-tieu { margin-top: 26px; text-transform: uppercase; font-size: clamp(25px, 6.6vw, 44px); line-height: 1.12; letter-spacing: .01em; }
-.lp-tieu > span { display: block; }
-.lp-tieu .mong { font-weight: 300; color: #fff; letter-spacing: .14em; margin-bottom: 6px; }
-.lp-tieu .dam { font-weight: 800; letter-spacing: .005em; padding: .2em 0 .06em; margin: -.2em 0 -.06em; /* chừa chỗ dấu chồng (Ể, Ế) để nền chữ không cắt dấu */
-  background: linear-gradient(100deg, #FF8CC0 0%, #FFD3E7 30%, #F3DDB0 50%, #FF8CC0 75%, #FFD3E7 100%); background-size: 240% 100%;
-  -webkit-background-clip: text; background-clip: text; color: transparent; animation: lp-anh 9s ease-in-out infinite; }
-@keyframes lp-anh { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-.lp-vach { display: flex; align-items: center; gap: 10px; margin-top: 26px; }
-.lp-vach i { width: 56px; height: 1px; background: linear-gradient(90deg, transparent, rgba(217,178,106,.9)); }
-.lp-vach i:last-child { transform: scaleX(-1); }
-.lp-vach b { width: 7px; height: 7px; transform: rotate(45deg); background: #D9B26A; box-shadow: 0 0 12px rgba(217,178,106,.7); }
-@media (min-width: 901px) { .lp-hero h1.lp-tieu { font-size: clamp(32px, 3.05vw, 46px); } }
-@media (max-width: 520px) { .lp-eyebrow { font-size: 10.5px; letter-spacing: .26em; gap: 10px; } .lp-eyebrow i { width: 22px; } }
-@media (prefers-reduced-motion: reduce) { .lp-tieu .dam { animation: none; } }
+/* ===== Nền loang + bóng tròn + tiêu đề 3 dòng — đồng bộ NS TUYỂN DỤNG (không dùng tím: quầng phải đổi sang hồng rượu #A3004F) ===== */
+.nen-loang { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+/* Quầng sáng bằng radial-gradient nhiều điểm dừng (không dùng filter: blur — Safari iPhone cắt blur thành mảng cứng) */
+.nen-loang::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 100%; pointer-events: none;
+  background:
+    radial-gradient(520px 440px at -6% -8%, rgba(224,21,126,.85) 0%, rgba(224,21,126,.58) 22%, rgba(224,21,126,.27) 45%, rgba(224,21,126,.07) 66%, rgba(224,21,126,0) 82%),
+    radial-gradient(460px 420px at 108% 22%, rgba(163,0,79,.62) 0%, rgba(163,0,79,.4) 25%, rgba(163,0,79,.17) 50%, rgba(163,0,79,.04) 70%, rgba(163,0,79,0) 85%),
+    radial-gradient(380px 300px at 40% 62%, rgba(224,21,126,.16) 0%, rgba(224,21,126,.06) 45%, rgba(224,21,126,0) 75%); }
+.bong-tron { position: absolute; border-radius: 50%; pointer-events: none; }
+.bong-tron.b1 { background: linear-gradient(150deg, rgba(255,255,255,.13) 0%, rgba(255,255,255,.04) 100%); }
+.bong-tron.b2 { background: linear-gradient(150deg, rgba(255,140,192,.24) 0%, rgba(255,140,192,.08) 100%); }
+.nen-loang .b1 { width: 240px; height: 240px; right: -96px; top: -120px; }
+.nen-loang .b2 { width: 120px; height: 120px; right: 112px; top: 40px; background: linear-gradient(150deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.05) 100%); }
+.lp-hero .lp-wrap { position: relative; }
+.bong-cum { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.bong-cum .b1 { width: 240px; height: 240px; right: -60px; top: -150px; }
+.bong-cum .b2 { width: 120px; height: 120px; right: 150px; top: 30px; background: linear-gradient(150deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.05) 100%); }
+.lp-nav, .lp-hero-noi { position: relative; z-index: 1; }
+.lp-hero .eyebrow { margin-bottom: 14px; }
+.hero-chu { text-transform: uppercase; font-size: clamp(26px, 7.2vw, 34px); line-height: 1; }
+.lp-hero h1.hero-chu { font-size: clamp(26px, 7.2vw, 34px); font-weight: 800; letter-spacing: 0; line-height: 1; }
+.hero-chu > span { display: block; }
+.hero-chu .d1 { font-size: .5em; font-weight: 600; letter-spacing: .32em; color: rgba(255,255,255,.62); margin-bottom: .32em; }
+.hero-chu .d2 { font-weight: 800; letter-spacing: -.015em; line-height: 1.12; color: #fff; }
+/* d3: chừa đệm trên cho dấu chồng (Ể, Ế) để nền chữ chuyển màu không cắt dấu */
+.hero-chu .d3 { font-weight: 800; letter-spacing: -.015em; line-height: 1.12; padding: .2em 0 .06em; margin-top: -.2em;
+  background: linear-gradient(92deg, #FF5FA8 0%, #FF8CC0 45%, #FFD1E6 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+@media (min-width: 901px) {
+  .nen-loang::before {
+    background:
+      radial-gradient(900px 760px at -4% -10%, rgba(224,21,126,.78) 0%, rgba(224,21,126,.52) 22%, rgba(224,21,126,.24) 45%, rgba(224,21,126,.06) 66%, rgba(224,21,126,0) 82%),
+      radial-gradient(760px 700px at 104% 18%, rgba(163,0,79,.5) 0%, rgba(163,0,79,.3) 25%, rgba(163,0,79,.13) 50%, rgba(163,0,79,.03) 70%, rgba(163,0,79,0) 85%),
+      radial-gradient(900px 520px at 38% 112%, rgba(224,21,126,.3) 0%, rgba(224,21,126,.14) 40%, rgba(224,21,126,0) 75%); }
+  .lp-hero-noi { grid-template-columns: minmax(0, 1.4fr) minmax(0, .85fr); gap: 48px; }
+  .lp-hero h1.hero-chu { font-size: clamp(34px, calc((100vw - 640px) / 17), 52px); }
+  .hero-chu > span { white-space: nowrap; }
+  .hero-chu .d1 { font-size: .36em; margin-bottom: .45em; }
+  .lp-hero .eyebrow { margin-bottom: 22px; }
+  .bong-cum .b1 { width: 300px; height: 300px; right: 300px; top: -150px; }
+  .bong-cum .b2 { width: 150px; height: 150px; right: 560px; top: 70px; background: linear-gradient(150deg, rgba(255,140,192,.24) 0%, rgba(255,140,192,.08) 100%); }
+  .nen-loang .b1 { width: 300px; height: 300px; right: -40px; top: -130px; }
+  .nen-loang .b2 { width: 150px; height: 150px; right: 220px; top: 60px; }
+}
+.dang-nhap .glow, .ch-dau .glow { display: none; }
+.dang-nhap::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(900px 760px at -4% -10%, rgba(224,21,126,.78) 0%, rgba(224,21,126,.52) 22%, rgba(224,21,126,.24) 45%, rgba(224,21,126,.06) 66%, rgba(224,21,126,0) 82%),
+    radial-gradient(760px 700px at 104% 18%, rgba(163,0,79,.5) 0%, rgba(163,0,79,.3) 25%, rgba(163,0,79,.13) 50%, rgba(163,0,79,.03) 70%, rgba(163,0,79,0) 85%); }
 
 /* Mã QR nhóm Zalo trong thẻ Zalo (ẩn trên điện thoại — bấm nút là vào được) */
 .the-zalo .qr-zalo { width: 96px; height: 96px; flex: none; border-radius: 16px; background: #fff; padding: 6px; box-shadow: 0 0 0 4px rgba(255,255,255,.18); }
