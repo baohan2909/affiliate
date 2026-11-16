@@ -448,7 +448,9 @@ a.kpi:hover, button.kpi:hover { transform: translateY(-2px); box-shadow: var(--s
 .lp-nav, .lp-hero-noi { position: relative; z-index: 1; }
 .lp-hero .eyebrow { margin-bottom: 14px; }
 .hero-chu { text-transform: uppercase; font-size: clamp(26px, 7.2vw, 34px); line-height: 1; }
-.lp-hero h1.hero-chu { font-size: clamp(26px, 7.2vw, 34px); font-weight: 800; letter-spacing: 0; line-height: 1; }
+/* cỡ chữ tính theo bề rộng cột để dòng dài nhất (≈11.5 lần cỡ chữ) luôn nằm trên 1 dòng */
+.lp-hero h1.hero-chu { font-size: clamp(22px, calc((100vw - 44px) / 11.8), 46px); font-weight: 800; letter-spacing: 0; line-height: 1; }
+.lp-hero .hero-chu > span { white-space: nowrap; }
 .hero-chu > span { display: block; }
 .hero-chu .d1 { font-size: .5em; font-weight: 600; letter-spacing: .32em; color: rgba(255,255,255,.62); margin-bottom: .32em; }
 .hero-chu .d2 { font-weight: 800; letter-spacing: -.015em; line-height: 1.12; color: #fff; }
@@ -462,7 +464,7 @@ a.kpi:hover, button.kpi:hover { transform: translateY(-2px); box-shadow: var(--s
       radial-gradient(760px 700px at 104% 18%, rgba(163,0,79,.5) 0%, rgba(163,0,79,.3) 25%, rgba(163,0,79,.13) 50%, rgba(163,0,79,.03) 70%, rgba(163,0,79,0) 85%),
       radial-gradient(900px 520px at 38% 112%, rgba(224,21,126,.3) 0%, rgba(224,21,126,.14) 40%, rgba(224,21,126,0) 75%); }
   .lp-hero-noi { grid-template-columns: minmax(0, 1.4fr) minmax(0, .85fr); gap: 48px; }
-  .lp-hero h1.hero-chu { font-size: clamp(34px, calc((100vw - 640px) / 17), 52px); }
+  .lp-hero h1.hero-chu { font-size: clamp(34px, calc((100vw - 92px) * .053), 54px); }
   .hero-chu > span { white-space: nowrap; }
   .hero-chu .d1 { font-size: .36em; margin-bottom: .45em; }
   .lp-hero .eyebrow { margin-bottom: 22px; }
