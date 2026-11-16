@@ -1,0 +1,11 @@
+node_modules
+dist
+.DS_Store
+*.local
+.env*
+# Mã máy chủ & SQL giữ riêng, không đưa lên repo công khai
+sql/
+gas/
+supabase/
+*.sql
+*.gs
