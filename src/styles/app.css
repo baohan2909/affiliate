@@ -452,9 +452,9 @@ a.kpi:hover, button.kpi:hover { transform: translateY(-2px); box-shadow: var(--s
 .lp-hero .hero-chu > span { white-space: nowrap; }
 .hero-chu > span { display: block; }
 .hero-chu .d1 { font-size: .5em; font-weight: 600; letter-spacing: .32em; color: rgba(255,255,255,.62); margin-bottom: .32em; }
-.hero-chu .d2 { font-weight: 800; letter-spacing: -.015em; line-height: 1.12; color: #fff; }
+.hero-chu .d2 { font-weight: 800; letter-spacing: -.015em; line-height: 1.18; color: #fff; }
 /* d3: chừa đệm trên cho dấu chồng (Ể, Ế) để nền chữ chuyển màu không cắt dấu */
-.hero-chu .d3 { font-weight: 800; letter-spacing: -.015em; line-height: 1.12; padding: .2em 0 .06em; margin-top: -.2em;
+.hero-chu .d3 { font-weight: 800; letter-spacing: -.015em; line-height: 1.18; padding: .2em 0 .06em; margin-top: -.04em;
   background: linear-gradient(92deg, #FF5FA8 0%, #FF8CC0 45%, #FFD1E6 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 @media (min-width: 901px) {
   .nen-loang::before {
@@ -465,7 +465,7 @@ a.kpi:hover, button.kpi:hover { transform: translateY(-2px); box-shadow: var(--s
   .lp-hero-noi { grid-template-columns: minmax(0, 1.4fr) minmax(0, .85fr); gap: 48px; }
   .lp-hero h1.hero-chu { font-size: clamp(34px, calc((100vw - 92px) * .053), 54px); }
   .hero-chu > span { white-space: nowrap; }
-  .hero-chu .d1 { font-size: .36em; margin-bottom: .45em; }
+  .hero-chu .d1 { font-size: .36em; margin-bottom: .7em; }
   .lp-hero .eyebrow { margin-bottom: 22px; }
   .bong-cum .b1 { width: 300px; height: 300px; right: 300px; top: -150px; }
   .bong-cum .b2 { width: 150px; height: 150px; right: 535px; top: 45px; background: linear-gradient(150deg, rgba(255,140,192,.24) 0%, rgba(255,140,192,.08) 100%); }
@@ -490,8 +490,7 @@ a.kpi:hover, button.kpi:hover { transform: translateY(-2px); box-shadow: var(--s
   .lp-hero { padding-bottom: 56px; }
   .lp-hero-noi { margin-top: 64px; gap: 44px; }
   .lp-hero .eyebrow { margin-bottom: 18px; }
-  .hero-chu .d1 { margin-bottom: .55em; }
-  .hero-chu .d3 { margin-top: -.12em; }
+  .hero-chu .d1 { margin-bottom: .75em; }
   .lp-hero .nut { margin-top: 36px; flex-direction: column; gap: 12px; }
   .lp-hero .nut .btn { width: 100%; justify-content: center; }
   .lp-hero .nut .btn.co-orb { justify-content: space-between; }
