@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// VITE_BASE: '/' khi chạy tên miền riêng (affiliate.nonson.vn), '/ns-affiliate-hub/' khi chạy GitHub Pages mặc định
+// VITE_BASE: '/' (tên miền riêng affiliate.nonson.vn)
 export default defineConfig({
   base: process.env.VITE_BASE || '/',
   plugins: [react()],
