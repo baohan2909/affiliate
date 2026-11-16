@@ -8,7 +8,7 @@ import { fmtNgay, fmtNgayGio, fmtPhanTram, fmtSo, fmtTien, homNay, khop } from '
 import { NHAN_TOP } from '../lib/hang'
 import { BangDL, OTim, ONhapAnh, docExcel, lamMoiTuyChon, useCauHinh, xuatExcel } from './chung'
 
-const RONG = { ma: '', ten: '', danh_muc: '', nen_tang: 'shopee', shop: '', link: '', anh: '', anh_phu: [], gia: '', gia_goc: '', hoa_hong: '', hoa_hong_ghi_chu: '', luot_ban: '', du_lieu_den: '', mo_ta: '', diem_noi_bat: '', hien: true, thu_tu: 0, nguon: 'nhap_tay' }
+const RONG = { ma: '', sku: '', link_web: '', ghi_chu: '', ten: '', danh_muc: '', nen_tang: 'shopee', shop: '', link: '', anh: '', anh_phu: [], gia: '', gia_goc: '', hoa_hong: '', hoa_hong_ghi_chu: '', luot_ban: '', du_lieu_den: '', mo_ta: '', diem_noi_bat: '', hien: true, thu_tu: 0, nguon: 'nhap_tay' }
 
 function SuaSP({ sp, dong, xong }) {
   const bao = useToast()
@@ -39,6 +39,8 @@ function SuaSP({ sp, dong, xong }) {
         <div className="luoi-form">
           <Field nhan="Mã sản phẩm" batBuoc value={f.ma} onChange={(e) => setF({ ...f, ma: e.target.value.toUpperCase() })} />
           <Field nhan="Tên sản phẩm" batBuoc value={f.ten} onChange={doi('ten')} />
+          <Field nhan="SKU" value={f.sku || ''} onChange={doi('sku')} />
+          <Field nhan="Link sản phẩm trên website Nón Sơn" inputMode="url" value={f.link_web || ''} onChange={doi('link_web')} />
           <Chon nhan="Danh mục" ds={[{ v: '', t: '— Không chọn —' }, ...(ch?.danh_muc || []).map((x) => ({ v: x, t: x }))]} giaTri={f.danh_muc || ''} onChon={doi('danh_muc')} />
           <Field nhan="Tên shop" value={f.shop || ''} onChange={doi('shop')} />
           <div className="toan"><Field nhan="Link sản phẩm Shopee (link gốc)" inputMode="url" value={f.link || ''} onChange={doi('link')} /></div>
@@ -71,6 +73,7 @@ function SuaSP({ sp, dong, xong }) {
           </div>
         </div>
         <TextArea nhan="Điểm nên nói khi quảng bá (mỗi dòng 1 ý)" rows={4} value={f.diem_noi_bat || ''} onChange={doi('diem_noi_bat')} />
+        <TextArea nhan="Ghi chú cho thành viên (hiện trong trang sản phẩm)" rows={2} value={f.ghi_chu || ''} onChange={doi('ghi_chu')} />
         <TextArea nhan="Mô tả sản phẩm" rows={5} value={f.mo_ta || ''} onChange={doi('mo_ta')} goiY="Hỗ trợ ## tiêu đề, - gạch đầu dòng, **đậm**." />
         <div className="luoi-form">
           <DongSwitch nhan="Hiển thị cho thành viên" on={f.hien} onDoi={(v) => setF({ ...f, hien: v })} />
@@ -205,13 +208,14 @@ export default function SanPham() {
   const qd = useDebounced(q, 200)
   const ds = data?.ds || []
   const dsDm = useMemo(() => [...new Set(ds.map((s) => s.danh_muc).filter(Boolean))], [ds])
-  const loc = useMemo(() => ds.filter((s) => khop(`${s.ten} ${s.ma} ${s.shop || ''}`, qd) && (!dm || s.danh_muc === dm) && (!hien || String(s.hien) === hien)), [ds, qd, dm, hien])
+  const loc = useMemo(() => ds.filter((s) => khop(`${s.ten} ${s.ma} ${s.sku || ''} ${s.shop || ''}`, qd) && (!dm || s.danh_muc === dm) && (!hien || String(s.hien) === hien)), [ds, qd, dm, hien])
   const batHien = async (s, v) => {
     setData((d) => ({ ...d, ds: d.ds.map((x) => (x.id === s.id ? { ...x, hien: v } : x)) }))
     try { await rpc('fn_qt_san_pham_luu', { p: { ...s, hien: v } }) } catch (e) { bao(e.message, 'loi'); reload(true) }
   }
   const cot = [
-    { k: 'ten', t: 'Sản phẩm', o: (s) => <div className="ten-o"><span className="anh-nho"><Anh src={s.anh} alt="" /></span><div className="gian"><b>{s.ten}</b><span>{s.ma}{s.shop ? ' · ' + s.shop : ''}</span></div></div> },
+    { k: 'thu_tu', t: 'STT', canh: 'giua' },
+    { k: 'ten', t: 'Sản phẩm', o: (s) => <div className="ten-o"><span className="anh-nho"><Anh src={s.anh} alt="" /></span><div className="gian"><b>{s.ten}</b><span>{s.ma}{s.sku ? ' · SKU ' + s.sku : ''}</span></div></div> },
     { k: 'danh_muc', t: 'Danh mục' },
     { k: 'gia', t: 'Giá', canh: 'giua', o: (s) => fmtTien(s.gia) },
     { k: 'hoa_hong', t: 'Hoa hồng', canh: 'giua', o: (s) => fmtPhanTram(s.hoa_hong) },
@@ -234,10 +238,11 @@ export default function SanPham() {
         <>
           {tab === 'ds' && <>
             <div className="toolbar">
-              <OTim giaTri={q} onDoi={setQ} goiY="Tên, mã, shop…" />
+              <OTim giaTri={q} onDoi={setQ} goiY="Tên, mã, SKU…" />
               {dsDm.length > 0 && <Chon kieu="tron" ds={[{ v: '', t: 'Mọi danh mục' }, ...dsDm.map((x) => ({ v: x, t: x }))]} giaTri={dm} onChon={setDm} />}
               <Chips co="sm" trang ds={[{ v: '', t: 'Tất cả' }, { v: 'true', t: 'Đang hiện' }, { v: 'false', t: 'Đang ẩn' }]} giaTri={hien} onChon={setHien} />
             </div>
+            {ds.some((s) => s.nguon === 'sheet_shopee') && <Bao kieu="xanh">Sản phẩm đồng bộ tự động từ Google Sheet <b>THÔNG TIN SẢN PHẨM AFFILIATE - SHOPEE GỐC</b>. Giá, % hoa hồng, chiết khấu, trạng thái và thứ tự (STT) sửa tại sheet; ảnh, điểm nổi bật, mô tả, ảnh phụ có thể bổ sung tại đây.</Bao>}
             <BangDL cot={cot} ds={loc} macDinh="thu_tu" chieu="tang" onBam={(s) => setSua(s)} trong="Chưa có sản phẩm. Thêm tay hoặc nhập từ Excel." />
           </>}
           {tab === 'top' && <div className="card"><QuanLyTop key={data.top.length + ':' + ds.length} ds={ds} top={data.top} nguonTop={data.nguon_top} xong={() => reload(true)} /></div>}
@@ -246,8 +251,8 @@ export default function SanPham() {
             <div className="card">
               {data.dong_bo.length === 0 ? <p className="nho muted">Chưa có lần nhập nào.</p> : data.dong_bo.map((x) => (
                 <div key={x.id} className="nk-dong">
-                  <div className="hang wrap" style={{ gap: 8, justifyContent: 'space-between' }}><b>{x.nguon}</b><span className="nho muted">{fmtNgayGio(x.luc)} · {x.boi_ten || 'Hệ thống'}</span></div>
-                  <span className="nho muted-2">{x.loai === 'san_pham' ? 'Sản phẩm' : x.loai} · {x.so_dong} dòng · thêm {x.chi_tiet?.them ?? 0} · cập nhật {x.chi_tiet?.cap_nhat ?? 0}{x.chi_tiet?.du_lieu_den ? ' · dữ liệu đến ' + fmtNgay(x.chi_tiet.du_lieu_den) : ''}{x.loi ? ' · ' + x.loi : ''}</span>
+                  <div className="hang wrap" style={{ gap: 8, justifyContent: 'space-between' }}><b>{x.nguon === 'sheet_shopee' ? 'Google Sheet · SHOPEE GỐC' : x.nguon}</b><span className="nho muted">{fmtNgayGio(x.luc)} · {x.boi_ten || 'Hệ thống'}</span></div>
+                  <span className="nho muted-2">{x.loai === 'san_pham' ? 'Sản phẩm' : x.loai} · {x.so_dong} dòng · thêm {x.chi_tiet?.them ?? 0} · cập nhật {x.chi_tiet?.cap_nhat ?? 0}{x.chi_tiet?.an ? ' · ẩn ' + x.chi_tiet.an : ''}{x.chi_tiet?.du_lieu_den ? ' · dữ liệu đến ' + fmtNgay(x.chi_tiet.du_lieu_den) : ''}{x.loi ? ' · ' + x.loi : ''}</span>
                 </div>
               ))}
             </div>

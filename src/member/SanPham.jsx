@@ -58,6 +58,7 @@ export function DsSanPham() {
   const [chiLuu, setChiLuu] = useState(false)
   const [coHH, setCoHH] = useState(false)
   const [sx, setSx] = useState('mac_dinh')
+  const [soHien, setSoHien] = useState(48)
   const qd = useDebounced(q, 200)
   const tim = useYeuThich(setData)
   const ds = data?.ds || []
@@ -65,7 +66,7 @@ export function DsSanPham() {
   const dsShop = useMemo(() => [...new Set(ds.map((s) => s.shop).filter(Boolean))], [ds])
   const dsCd = useMemo(() => { const m = new Map(); ds.forEach((s) => (s.chien_dich || []).forEach((c) => m.set(c.id, c.ten))); return [...m].map(([v, t]) => ({ v, t })) }, [ds])
   const loc = useMemo(() => {
-    let r = ds.filter((s) => khop(s.ten + ' ' + s.ma, qd) && (!dm || s.danh_muc === dm) && (!nhan || (s.nhan || []).includes(nhan))
+    let r = ds.filter((s) => khop(s.ten + ' ' + s.ma + ' ' + (s.sku || ''), qd) && (!dm || s.danh_muc === dm) && (!nhan || (s.nhan || []).includes(nhan))
       && (!cd || (s.chien_dich || []).some((c) => c.id === cd)) && (!shop || s.shop === shop) && (!chiLuu || s.yeu_thich) && (!coHH || s.hoa_hong != null))
     const so = (x) => (x == null ? -Infinity : Number(x))
     if (sx === 'ban_chay') r = [...r].sort((a, b) => so(b.luot_ban) - so(a.luot_ban))
@@ -97,7 +98,11 @@ export function DsSanPham() {
               hanhDong={coLoc && <Btn kieu="vien" co="sm" icon={X} onClick={() => { setQ(''); setDm(''); setNhan(''); setCd(''); setShop(''); setChiLuu(false); setCoHH(false) }}>Bỏ lọc</Btn>}>
               {ds.length ? 'Thử bỏ bớt bộ lọc.' : 'Nón Sơn sẽ sớm đưa sản phẩm Affiliate lên đây.'}
             </Empty>
-          : <><p className="nho muted">{loc.length} sản phẩm</p><div className="luoi-sp">{loc.map((s) => <TheSanPham key={s.id} s={s} onTim={tim} onClick={() => nav('/san-pham/' + s.id)} />)}</div></>}
+          : <>
+              <p className="nho muted">{loc.length} sản phẩm</p>
+              <div className="luoi-sp">{loc.slice(0, soHien).map((s) => <TheSanPham key={s.id} s={s} onTim={tim} onClick={() => nav('/san-pham/' + s.id)} />)}</div>
+              {loc.length > soHien && <div style={{ textAlign: 'center' }}><Btn kieu="vien" onClick={() => setSoHien(soHien + 48)}>Xem thêm {Math.min(48, loc.length - soHien)} sản phẩm · còn {loc.length - soHien}</Btn></div>}
+            </>}
     </>
   )
 }
@@ -159,8 +164,8 @@ export function CtSanPham() {
               {s.danh_muc && <span className="tag">{s.danh_muc}</span>}
             </div>
             <h1 style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.3 }}>{s.ten}</h1>
-            <p className="nho muted">Mã {s.ma}{s.shop ? ' · Shop ' + s.shop : ''}</p>
-            {s.gia != null && <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--pink-deep)' }}>{fmtTien(s.gia)}{s.gia_goc > s.gia && <s className="nho muted" style={{ marginLeft: 8, fontWeight: 600 }}>{fmtTien(s.gia_goc)}</s>}</div>}
+            <p className="nho muted">Mã {s.ma}{s.sku ? ' · SKU ' + s.sku : ''}{s.shop ? ' · Shop ' + s.shop : ''}</p>
+            {s.gia != null && <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--pink-deep)' }}>{fmtTien(s.gia)}{s.gia_goc > s.gia && <s className="nho muted" style={{ marginLeft: 8, fontWeight: 600 }}>{fmtTien(s.gia_goc)}</s>}{s.chiet_khau > 0 && <span className="tag" style={{ marginLeft: 8, background: '#FDE6F1', color: '#A3004F', verticalAlign: 4 }}>-{fmtPhanTram(s.chiet_khau)}</span>}</div>}
             {s.hoa_hong != null && <div className="bao ok"><div><b>Hoa hồng {fmtPhanTram(s.hoa_hong)}</b> theo chương trình hiện tại{s.hoa_hong_ghi_chu ? ' · ' + s.hoa_hong_ghi_chu : ''}</div></div>}
             {(s.luot_ban != null || s.du_lieu_den) && (
               <p className="nho muted-2">{s.luot_ban != null && <>Đã bán <b>{fmtSo(s.luot_ban)}</b></>}{s.du_lieu_den && <> · dữ liệu đến {fmtNgay(s.du_lieu_den)}</>}</p>
@@ -172,6 +177,8 @@ export function CtSanPham() {
                 <Btn kieu={s.yeu_thich ? 'mem' : 'vien'} icon={Heart} onClick={tim} style={s.yeu_thich ? { color: '#D6006C' } : undefined}>{s.yeu_thich ? 'Đã lưu' : 'Lưu'}</Btn>
               </div>
             </div>
+            {s.link_web && <a className="btn trong rong" href={s.link_web} target="_blank" rel="noreferrer"><ExternalLink size={16} />Xem trên website Nón Sơn</a>}
+            {s.ghi_chu && <div className="bao vang"><div><b>Lưu ý:</b> <span style={{ whiteSpace: 'pre-line' }}>{s.ghi_chu}</span></div></div>}
             <div className="bao xanh"><div><b>Tạo link Affiliate của bạn:</b><ol style={{ margin: '6px 0 0', paddingLeft: 18 }}><li>Bấm “Sao chép link gốc”.</li><li>Mở công cụ tạo link trong tài khoản Shopee Affiliate.</li><li>Dán link và dùng link rút gọn mang mã của bạn.</li></ol></div></div>
           </div>
           {(s.chien_dich || []).length > 0 && (
