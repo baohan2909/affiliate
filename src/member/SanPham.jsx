@@ -10,6 +10,8 @@ import { useAsync, useDebounced } from '../lib/hooks'
 import { rpc, linkTai } from '../lib/api'
 import { fmtNgay, fmtPhanTram, fmtSo, fmtTien, khop } from '../lib/format'
 import { NHAN_TOP, LOAI_TN } from '../lib/hang'
+import { congKenh, mauKenh, phanTram, tenKenh, xepKenh } from '../lib/kenh'
+import { ThanhKenh } from '../components/kenh'
 
 export const SHOPEE_AFF = 'https://affiliate.shopee.vn/offer/custom_link'
 const MBH = 'Mũ bảo hiểm'
@@ -30,9 +32,13 @@ const soBan = (n) => (n == null ? null : n >= 10000 ? Math.round(n / 1000) + 'K'
 const soSanhTop = (a, b) => (b.luot_ban ?? -1) - (a.luot_ban ?? -1) || a.thu_tu - b.thu_tu
 
 // Gộp các mẫu (màu/size) dùng chung 1 link Shopee thành 1 sản phẩm → 1 link affiliate. Xếp hạng theo số bán trong từng danh mục.
-export function gomSanPham(ds) {
+// kenh: chỉ tính số bán trên 1 kênh (shopee, tiktok…); bỏ trống = mọi kênh.
+export function gomSanPham(ds, kenh) {
   const m = new Map()
-  for (const s of ds || []) { const k = s.link || s.id; if (!m.has(k)) m.set(k, []); m.get(k).push(s) }
+  for (const s0 of ds || []) {
+    const s = kenh ? { ...s0, luot_ban: s0.ban_kenh ? Number(s0.ban_kenh[kenh]) || 0 : s0.luot_ban != null ? 0 : null } : s0
+    const k = s.link || s.id; if (!m.has(k)) m.set(k, []); m.get(k).push(s)
+  }
   const out = []
   for (const [k, ms] of m) {
     const xep = [...ms].sort((a, b) => (b.luot_ban ?? -1) - (a.luot_ban ?? -1) || (a.thu_tu ?? 0) - (b.thu_tu ?? 0))
@@ -47,6 +53,7 @@ export function gomSanPham(ds) {
       gia: gia.length ? Math.min(...gia) : null, gia_max: gia.length ? Math.max(...gia) : null, gia_goc: dd.gia_goc, chiet_khau: dd.chiet_khau,
       hoa_hong: hh.length ? Math.max(...hh) : null,
       luot_ban: ms.some((x) => x.luot_ban != null) ? ms.reduce((t, x) => t + (Number(x.luot_ban) || 0), 0) : null,
+      ban_kenh: ms.some((x) => x.ban_kenh) ? congKenh(ms.map((x) => x.ban_kenh)) : null,
       so_mau: ms.length, mau: xep, thu_tu: Math.min(...ms.map((x) => x.thu_tu ?? 1e9)), tao_luc: ms.map((x) => x.tao_luc).sort().pop(),
       yeu_thich: ms.some((x) => x.yeu_thich), nhan: [...new Set(ms.flatMap((x) => x.nhan || []))], chien_dich: [...cd.values()]
     })
@@ -96,7 +103,7 @@ export function useLayLink() {
 }
 
 // ---------- Thẻ sản phẩm ----------
-export function TheSanPham({ s, onClick, onTim, onLay, chonNhieu, daChon, onChon, kemDm }) {
+export function TheSanPham({ s, onClick, onTim, onLay, chonNhieu, daChon, onChon, kemDm, kenh }) {
   const nhan = !s.hang && (s.nhan_top || (s.nhan || [])[0])
   const coLinkToi = !!s.link_toi
   return (
@@ -110,7 +117,9 @@ export function TheSanPham({ s, onClick, onTim, onLay, chonNhieu, daChon, onChon
             <button type="button" className={'tim-sp' + (s.yeu_thich ? ' on' : '')} aria-label={s.yeu_thich ? 'Bỏ lưu' : 'Lưu sản phẩm'}
               onClick={(e) => { e.stopPropagation(); onTim(s) }}><Heart size={16} fill={s.yeu_thich ? 'currentColor' : 'none'} /></button>
           )}
-        {s.luot_ban > 0 && <span className="ban-noi"><Flame size={12} strokeWidth={2.4} />Đã bán {soBan(s.luot_ban)}</span>}
+        {s.luot_ban > 0 && (kenh
+          ? <span className="ban-noi kenh" style={{ '--k': mauKenh(kenh) }}><i />{tenKenh(kenh)} · {soBan(s.luot_ban)}</span>
+          : <span className="ban-noi"><Flame size={12} strokeWidth={2.4} />Đã bán {soBan(s.luot_ban)}</span>)}
         {s.so_mau > 1 && <span className="mau-noi"><Layers size={12} />{s.so_mau} mẫu</span>}
       </div>
       <div className="than">
@@ -127,7 +136,7 @@ export function TheSanPham({ s, onClick, onTim, onLay, chonNhieu, daChon, onChon
             {s.link && <a className="nut-tron" href={s.link} target="_blank" rel="noreferrer" aria-label="Mở trên Shopee" title="Mở trên Shopee" onClick={(e) => { e.stopPropagation(); suKien('mo_shopee', s.id) }}><ShoppingBag size={16} /></a>}
           </div>
         )}
-        {!onLay && <div className="phu">{[s.luot_ban > 0 && `Đã bán ${fmtSo(s.luot_ban)}`, (s.chien_dich || []).length > 0 && `${s.chien_dich.length} chiến dịch`].filter(Boolean).join(' · ') || s.danh_muc || s.ma}</div>}
+        {!onLay && <div className="phu">{[s.luot_ban > 0 && (kenh ? `${tenKenh(kenh)}: ${fmtSo(s.luot_ban)}` : `Đã bán ${fmtSo(s.luot_ban)}`), (s.chien_dich || []).length > 0 && `${s.chien_dich.length} chiến dịch`].filter(Boolean).join(' · ') || s.danh_muc || s.ma}</div>}
       </div>
     </article>
   )
@@ -260,7 +269,7 @@ export function HopLayLink({ g, dong, onDoiLink }) {
 }
 
 // ---------- Bảng xếp hạng (nền tối sang) ----------
-function BangXepHang({ ds, dm, setDm, coDm, duLieuDen, onMo, onLay }) {
+function BangXepHang({ ds, dm, setDm, coDm, duLieuDen, onMo, onLay, kenh, nguonNhanh }) {
   const top = ds.filter((g) => g.danh_muc === dm && g.hang).sort((a, b) => a.hang - b.hang).slice(0, 10)
   if (!top.length) return null
   const [a, ...con] = top
@@ -271,7 +280,9 @@ function BangXepHang({ ds, dm, setDm, coDm, duLieuDen, onMo, onLay }) {
         <div>
           <span className="eyebrow"><Trophy size={13} />BẢNG XẾP HẠNG</span>
           <h2>Top bán chạy <b>{dm}</b></h2>
-          {duLieuDen && <p className="ghi">Theo số bán Nón Sơn · cập nhật {fmtNgay(duLieuDen)}</p>}
+          {kenh
+            ? <p className="ghi"><span className="the-kenh" style={{ '--k': mauKenh(kenh) }}><i />Trên {tenKenh(kenh)}</span>30 ngày gần nhất{duLieuDen ? ' · cập nhật ' + fmtNgay(duLieuDen) : ''}</p>
+            : duLieuDen && <p className="ghi">{nguonNhanh ? 'Số bán mọi kênh online · 30 ngày gần nhất' : 'Theo số bán Nón Sơn'} · cập nhật {fmtNgay(duLieuDen)}</p>}
         </div>
         {coDm.length > 1 && (
           <div className="bxh-tab" role="tablist">
@@ -327,13 +338,19 @@ export function DsSanPham() {
   const [cd, setCd] = useState('')
   const [chiLuu, setChiLuu] = useState(false)
   const [sx, setSx] = useState('ban_chay')
+  const [kenh, setKenh] = useState('')
   const [soHien, setSoHien] = useState(48)
   const [chonNhieu, setChonNhieu] = useState(false)
   const [daChon, setDaChon] = useState([])
   const qd = useDebounced(q, 200)
   const tim = useYeuThich(setData)
   const ll = useLayLink()
-  const nhom = useMemo(() => gomSanPham(data?.ds), [data])
+  const kenhDu = !!data?.kenh_du
+  const kenhLoc = kenhDu ? kenh : ''
+  const nhom = useMemo(() => gomSanPham(data?.ds, kenhLoc), [data, kenhLoc])
+  // Tỉ lệ số bán theo kênh trên toàn bộ sản phẩm đang hiện. Nút lọc chỉ cho kênh bán công khai chiếm từ 1% (đơn tạo tay / kênh khác vẫn tính trong “Mọi kênh”)
+  const tongKenh = useMemo(() => (kenhDu ? xepKenh(congKenh((data?.ds || []).map((x) => x.ban_kenh))) : []), [data, kenhDu])
+  const nutKenh = tongKenh.filter(([k, , p]) => p >= 1 && k !== 'noi_bo' && k !== 'khac')
   const demDm = useMemo(() => { const c = {}; nhom.forEach((g) => { c[g.danh_muc] = (c[g.danh_muc] || 0) + 1 }); return c }, [nhom])
   const dsDm = [MBH, NV, PK].filter((x) => demDm[x]).concat(Object.keys(demDm).filter((x) => ![MBH, NV, PK].includes(x)))
   const coTop = dsDm.filter((x) => nhom.some((g) => g.danh_muc === x && g.hang))
@@ -351,12 +368,12 @@ export function DsSanPham() {
     if (sx === 'moi') r = [...r].sort((a, b) => String(b.tao_luc).localeCompare(String(a.tao_luc)))
     return r
   }, [nhom, qd, dm, cd, chiLuu, sx])
-  useEffect(() => { setSoHien(48) }, [qd, dm, cd, chiLuu, sx])
+  useEffect(() => { setSoHien(48) }, [qd, dm, cd, chiLuu, sx, kenhLoc])
   const doiLink = (g, link) => {
     setData((d) => (d ? { ...d, ds: d.ds.map((x) => (x.link === g.link ? { ...x, link_toi: link } : x)) } : d))
     ll.setMo((m) => (m && m.key === g.key ? { ...m, link_toi: link } : m))
   }
-  const moCt = (g) => nav('/san-pham/' + g.id, { state: { hang: g.hang, danh_muc: g.danh_muc } })
+  const moCt = (g) => nav('/san-pham/' + g.id, { state: { hang: g.hang, danh_muc: g.danh_muc, kenh: kenhLoc || null } })
   const batChon = (g) => {
     if (daChon.includes(g.key)) setDaChon(daChon.filter((k) => k !== g.key))
     else if (daChon.length >= TOI_DA_CHON) bao(`Shopee nhận tối đa ${TOI_DA_CHON} link mỗi lần`, 'loi')
@@ -381,9 +398,24 @@ export function DsSanPham() {
         ) })}
       </div>
 
+      {nutKenh.length > 1 && (
+        <div className="sp-kenh">
+          <span className="nhan">Số bán theo kênh</span>
+          <div className="kenh-chon" role="tablist" aria-label="Kênh bán">
+            <button type="button" role="tab" aria-selected={!kenh} className={!kenh ? 'on' : ''} onClick={() => setKenh('')}>Mọi kênh</button>
+            {nutKenh.map(([k, , p]) => (
+              <button key={k} type="button" role="tab" aria-selected={kenh === k} className={kenh === k ? 'on' : ''} style={{ '--k': mauKenh(k) }} onClick={() => setKenh(kenh === k ? '' : k)}>
+                <i />{tenKenh(k)}<small>{phanTram(p)}</small>
+              </button>
+            ))}
+          </div>
+          <div className="thanh" aria-hidden="true">{tongKenh.map(([k, , p]) => <span key={k} style={{ width: p + '%', background: mauKenh(k), opacity: !kenh || kenh === k ? 1 : 0.22 }} />)}</div>
+        </div>
+      )}
+
       {loading && !data ? <KhungTai /> : error && !data ? <LoiTai loi={error} thuLai={reload} /> : (
         <>
-          {!q && !cd && !chiLuu && dmBxh && <BangXepHang ds={nhom} dm={dmBxh} setDm={(x) => (dm ? setDm(x) : setDmTop(x))} coDm={dm ? [] : coTop} duLieuDen={data?.du_lieu_den} onMo={moCt} onLay={ll.lay} />}
+          {!q && !cd && !chiLuu && dmBxh && <BangXepHang ds={nhom} dm={dmBxh} setDm={(x) => (dm ? setDm(x) : setDmTop(x))} coDm={dm ? [] : coTop} duLieuDen={data?.du_lieu_den} onMo={moCt} onLay={ll.lay} kenh={kenhLoc} nguonNhanh={data?.nguon_so_ban === 'nhanh'} />}
 
           <div className="toolbar">
             <label className="input-tron"><Search size={17} /><input placeholder="Tìm tên, mã hoặc SKU…" value={q} onChange={(e) => setQ(e.target.value)} />{q && <button type="button" className="xoa-tim" aria-label="Xóa" onClick={() => setQ('')}><X size={15} /></button>}</label>
@@ -400,12 +432,12 @@ export function DsSanPham() {
               </Empty>
             : <>
                 <div className="hang" style={{ justifyContent: 'space-between', gap: 10 }}>
-                  <p className="nho muted">{fmtSo(loc.length)} sản phẩm{sx === 'ban_chay' ? ' · xếp theo số bán' : ''}</p>
+                  <p className="nho muted">{fmtSo(loc.length)} sản phẩm{sx === 'ban_chay' ? ' · xếp theo số bán' + (kenhLoc ? ' trên ' + tenKenh(kenhLoc) : '') : ''}</p>
                   {chonNhieu && <p className="nho muted">Chọn tối đa {TOI_DA_CHON} sản phẩm để lấy link cùng lúc</p>}
                 </div>
                 <div className="luoi-sp">
                   {loc.slice(0, soHien).map((g) => (
-                    <TheSanPham key={g.key} s={g} kemDm={!dm} onTim={tim} onLay={ll.lay} onClick={() => moCt(g)} chonNhieu={chonNhieu} daChon={daChon.includes(g.key)} onChon={batChon} />
+                    <TheSanPham key={g.key} s={g} kemDm={!dm} kenh={kenhLoc} onTim={tim} onLay={ll.lay} onClick={() => moCt(g)} chonNhieu={chonNhieu} daChon={daChon.includes(g.key)} onChon={batChon} />
                   ))}
                 </div>
                 {loc.length > soHien && <div style={{ textAlign: 'center' }}><Btn kieu="vien" onClick={() => setSoHien(soHien + 48)}>Xem thêm {Math.min(48, loc.length - soHien)} sản phẩm · còn {fmtSo(loc.length - soHien)}</Btn></div>}
@@ -441,6 +473,9 @@ export function CtSanPham() {
     ...s, key: s.link || s.id, danh_muc: s.danh_muc || doanDanhMuc(s), so_mau: Math.max(1, mau.length), hang: loc.state?.hang || null,
     luot_ban: mau.some((x) => x.luot_ban != null) ? mau.reduce((t, x) => t + (Number(x.luot_ban) || 0), 0) : s.luot_ban
   }
+  const bk = mau.length ? congKenh(mau.map((x) => x.ban_kenh)) : s.ban_kenh
+  const coKenh = s.kenh_du && xepKenh(bk).length > 0
+  const kenhHang = loc.state?.kenh
   const anh = [s.anh, ...(s.anh_phu || [])].filter(Boolean)
   const tim = async () => {
     const moi = !s.yeu_thich
@@ -464,7 +499,7 @@ export function CtSanPham() {
           <div className="card p0 ct-anh">
             <div className="khung-anh">
               <Anh src={anh[anhChon]} alt={s.ten} />
-              {g.hang && <HuyHieuHang hang={g.hang} dm={g.danh_muc} lon />}
+              {g.hang && <HuyHieuHang hang={g.hang} dm={kenhHang ? `${g.danh_muc} trên ${tenKenh(kenhHang)}` : g.danh_muc} lon />}
             </div>
             {anh.length > 1 && (
               <div className="hang" style={{ gap: 8, padding: 12, overflowX: 'auto' }}>
@@ -509,6 +544,12 @@ export function CtSanPham() {
               {s.hoa_hong != null && <div className="hong"><span>Hoa hồng</span><b>{fmtPhanTram(s.hoa_hong)}</b></div>}
               {s.gia != null && <div className="gia"><span>Giá bán</span><b>{fmtTien(s.gia)}</b></div>}
             </div>
+            {coKenh && (
+              <div className="ct-kenh">
+                <div className="dau"><span>Đã bán theo kênh</span><small>30 ngày gần nhất</small></div>
+                <ThanhKenh bk={bk} />
+              </div>
+            )}
             {s.hoa_hong_ghi_chu && <p className="nho muted-2">{s.hoa_hong_ghi_chu}</p>}
             {s.du_lieu_den && g.luot_ban > 0 && <p className="nho muted">Số bán theo dữ liệu Nón Sơn · cập nhật {fmtNgay(s.du_lieu_den)}</p>}
             <div className="hang" style={{ gap: 8 }}>

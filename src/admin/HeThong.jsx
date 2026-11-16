@@ -9,6 +9,7 @@ import { fmtNgayGio, homNay, congNgay, khop, tuongDoi } from '../lib/format'
 import { TT_THU, VAI_TRO } from '../lib/hang'
 import { BangDL, DsDong, ONhapAnh, OTim, lamMoiCauHinh } from './chung'
 import { useQt } from './Cong'
+import { ThanhKenh } from '../components/kenh'
 
 // ================= NHÂN SỰ =================
 function MatKhauMoi({ kq, dong }) {
@@ -193,7 +194,7 @@ function KetNoiNhanh() {
     else bao(sp.get('ly_do') || 'Kết nối Nhanh.vn chưa thành công', 'loi')
     const m = new URLSearchParams(sp); m.delete('nhanh'); m.delete('ly_do'); setSp(m, { replace: true })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (!t?.ket_noi || t.so_ngay_xong >= 30) return; const h = setInterval(() => reload(true), 15000); return () => clearInterval(h) }, [t?.ket_noi, t?.so_ngay_xong]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!t?.ket_noi || (t.so_ngay_xong >= 30 && t.so_ngay_kenh >= 30)) return; const h = setInterval(() => reload(true), 15000); return () => clearInterval(h) }, [t?.ket_noi, t?.so_ngay_xong, t?.so_ngay_kenh]) // eslint-disable-line react-hooks/exhaustive-deps
   const ketNoi = async () => {
     setDang('kn')
     try {
@@ -214,7 +215,7 @@ function KetNoiNhanh() {
   return (
     <div className="card cot" style={{ gap: 12 }}>
       <div className="dau-the">
-        <div><h2>Kết nối Nhanh.vn</h2><p className="nho muted" style={{ marginTop: 2 }}>Số “Đã bán” = tổng phiếu xuất kho 30 ngày gần nhất ở mọi kênh (giao hàng, bán lẻ, bán buôn). Tự cập nhật mỗi 30 phút.</p></div>
+        <div><h2>Kết nối Nhanh.vn</h2><p className="nho muted" style={{ marginTop: 2 }}>Số “Đã bán” = tổng phiếu xuất kho 30 ngày gần nhất ở mọi kênh online, chia theo kênh bán của đơn (Shopee, TikTok Shop, Lazada…). Tự cập nhật mỗi 30 phút.</p></div>
         {t.ket_noi
           ? <span className="tag" style={{ background: '#E3F5EE', color: '#0E7F63' }}>Đã kết nối</span>
           : <span className="tag" style={{ background: '#FDF3E3', color: '#8A5410' }}>Chưa kết nối</span>}
@@ -227,6 +228,13 @@ function KetNoiNhanh() {
           <div className="dong-tt"><span>Quyền hết hạn</span><span>{t.het_han ? fmtNgayGio(t.het_han) : '—'}</span></div>
           <div className="dong-tt"><span>Dữ liệu 30 ngày</span><span><b>{t.so_ngay_xong}/30 ngày</b> · {Number(t.tong_30_ngay || 0).toLocaleString('vi-VN')} sản phẩm bán · {t.so_ma_khop} mã khớp với app</span></div>
           <div style={{ height: 8, borderRadius: 99, background: 'var(--soft)', overflow: 'hidden' }}><div style={{ width: phanTram + '%', height: '100%', background: 'var(--nut-chinh)', transition: 'width .4s' }} /></div>
+          {t.so_ngay_kenh < 30 && <div className="dong-tt"><span>Chia theo kênh</span><span><b>{t.so_ngay_kenh || 0}/30 ngày</b> · đang tra kênh bán của từng đơn</span></div>}
+          {Object.keys(t.theo_kenh || {}).length > 0 && (
+            <div className="cot" style={{ gap: 8, marginTop: 4 }}>
+              <span className="nho muted-2">Số bán theo kênh{t.so_ngay_kenh < 30 ? ` (${t.so_ngay_kenh} ngày đã tách)` : ' · 30 ngày'}</span>
+              <ThanhKenh bk={t.theo_kenh} gon />
+            </div>
+          )}
           <div className="dong-tt"><span>Lần đồng bộ cuối</span><span>{t.lan_dong_bo ? tuongDoi(t.lan_dong_bo) : 'chưa chạy'}</span></div>
           {t.loi_cuoi && <Bao kieu="loi">Lỗi lần cuối: {t.loi_cuoi}</Bao>}
           <div className="hang wrap" style={{ gap: 10, alignItems: 'center' }}>

@@ -6,6 +6,7 @@ import { useAsync, useDebounced } from '../lib/hooks'
 import { rpc, taiAnhLen } from '../lib/api'
 import { fmtNgay, fmtNgayGio, fmtPhanTram, fmtSo, fmtTien, homNay, khop } from '../lib/format'
 import { NHAN_TOP } from '../lib/hang'
+import { congKenh, tenKenh, xepKenh } from '../lib/kenh'
 import { BangDL, OTim, ONhapAnh, docExcel, lamMoiTuyChon, useCauHinh, xuatExcel } from './chung'
 
 const RONG = { ma: '', sku: '', link_web: '', ghi_chu: '', ten: '', danh_muc: '', nen_tang: 'shopee', shop: '', link: '', anh: '', anh_phu: [], gia: '', gia_goc: '', hoa_hong: '', hoa_hong_ghi_chu: '', luot_ban: '', du_lieu_den: '', mo_ta: '', diem_noi_bat: '', hien: true, thu_tu: 0, nguon: 'nhap_tay' }
@@ -213,6 +214,8 @@ export default function SanPham() {
     setData((d) => ({ ...d, ds: d.ds.map((x) => (x.id === s.id ? { ...x, hien: v } : x)) }))
     try { await rpc('fn_qt_san_pham_luu', { p: { ...s, hien: v } }) } catch (e) { bao(e.message, 'loi'); reload(true) }
   }
+  // Cột số bán theo kênh: chỉ các kênh chiếm từ 3% tổng số bán
+  const cotKenh = useMemo(() => xepKenh(congKenh(ds.map((s) => s.ban_kenh))).filter(([, , p]) => p >= 3).map(([k]) => k), [ds])
   const cot = [
     { k: 'thu_tu', t: 'STT', canh: 'giua' },
     { k: 'ten', t: 'Sản phẩm', o: (s) => <div className="ten-o"><span className="anh-nho"><Anh src={s.anh} alt="" /></span><div className="gian"><b>{s.ten}</b><span>{s.ma}{s.sku ? ' · SKU ' + s.sku : ''}</span></div></div> },
@@ -220,6 +223,7 @@ export default function SanPham() {
     { k: 'gia', t: 'Giá', canh: 'giua', o: (s) => fmtTien(s.gia) },
     { k: 'hoa_hong', t: 'Hoa hồng', canh: 'giua', o: (s) => fmtPhanTram(s.hoa_hong) },
     { k: 'luot_ban', t: 'Lượt bán', canh: 'giua', o: (s) => (s.luot_ban != null ? fmtSo(s.luot_ban) : '') },
+    ...cotKenh.map((k) => ({ k: 'kenh_' + k, t: tenKenh(k), canh: 'giua', sx: (s) => Number(s.ban_kenh?.[k]) || 0, o: (s) => (s.ban_kenh?.[k] ? fmtSo(s.ban_kenh[k]) : '') })),
     { k: 'nhan', t: 'Top', sx: (s) => s.nhan.length, o: (s) => s.nhan.map((n) => NHAN_TOP[n.nhan]?.ngan).join(', ') },
     { k: 'xem', t: 'Xem', canh: 'giua' },
     { k: 'mo', t: 'Mở/chép', canh: 'giua' },
@@ -228,7 +232,7 @@ export default function SanPham() {
     { k: 'hien', t: 'Hiện', canh: 'giua', o: (s) => <span onClick={(e) => e.stopPropagation()}><Switch on={s.hien} nhan="Hiển thị" onDoi={(v) => batHien(s, v)} /></span> },
     { k: 'link', t: '', sx: false, o: (s) => s.link && <a href={s.link} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="icon-btn xs mem" aria-label="Mở Shopee"><ExternalLink size={14} /></a> }
   ]
-  const xuat = () => xuatExcel('san-pham-affiliate-' + homNay(), loc.map((s) => ({ 'Mã': s.ma, 'Tên': s.ten, 'Danh mục': s.danh_muc || '', 'Shop': s.shop || '', 'Link': s.link || '', 'Ảnh': s.anh || '', 'Giá': s.gia ?? '', 'Giá gốc': s.gia_goc ?? '', 'Hoa hồng': s.hoa_hong ?? '', 'Lượt bán': s.luot_ban ?? '', 'Nhãn': s.nhan.map((n) => NHAN_TOP[n.nhan]?.ngan).join(', '), 'Hiển thị': s.hien ? 'Có' : 'Ẩn', 'Lượt xem': s.xem, 'Mở/chép link': s.mo, 'Lượt lưu': s.luu })), 'San pham')
+  const xuat = () => xuatExcel('san-pham-affiliate-' + homNay(), loc.map((s) => ({ 'Mã': s.ma, 'Tên': s.ten, 'Danh mục': s.danh_muc || '', 'Shop': s.shop || '', 'Link': s.link || '', 'Ảnh': s.anh || '', 'Giá': s.gia ?? '', 'Giá gốc': s.gia_goc ?? '', 'Hoa hồng': s.hoa_hong ?? '', 'Lượt bán': s.luot_ban ?? '', ...Object.fromEntries(cotKenh.map((k) => [tenKenh(k), Number(s.ban_kenh?.[k]) || 0])), 'Nhãn': s.nhan.map((n) => NHAN_TOP[n.nhan]?.ngan).join(', '), 'Hiển thị': s.hien ? 'Có' : 'Ẩn', 'Lượt xem': s.xem, 'Mở/chép link': s.mo, 'Lượt lưu': s.luu })), 'San pham')
   return (
     <>
       <TrangDau eyebrow="Nội dung" tieuDe="Sản phẩm Affiliate" phu={`${ds.length} sản phẩm · ${ds.filter((s) => s.hien).length} đang hiển thị`}
