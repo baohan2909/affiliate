@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Copy, ExternalLink, KeyRound, Link2, PlugZap, RefreshCw, RotateCcw, Save, ShieldCheck, UserPlus } from 'lucide-react'
-import { Bao, Btn, Chips, Chon, DongSwitch, Field, KhungTai, LoiTai, MaQR, Modal, Nhan, Segment, TextArea, TrangDau, saoChep, useToast, useXacNhan } from '../components/ui'
+import { Bao, Btn, Chips, Chon, DongSwitch, Field, KhungTai, LoiTai, MaQR, Modal, Nhan, Segment, TextArea, ThanhTienDo, TrangDau, saoChep, useToast, useXacNhan } from '../components/ui'
 import { useAsync } from '../lib/hooks'
 import { rpc, sb, taiKhoan } from '../lib/api'
 import { SUPABASE_URL, SUPABASE_KEY } from '../config'
-import { fmtNgayGio, homNay, congNgay, khop, tuongDoi } from '../lib/format'
+import { fmtNgay, fmtNgayGio, homNay, congNgay, khop, tuongDoi } from '../lib/format'
+import { QUY_TAC_GOC } from '../lib/quytac'
 import { TT_THU, VAI_TRO } from '../lib/hang'
 import { BangDL, DsDong, ONhapAnh, OTim, lamMoiCauHinh } from './chung'
 import { useQt } from './Cong'
@@ -97,6 +98,44 @@ function TheCH({ tieuDe, moTa, children, onLuu, khoa }) {
   )
 }
 
+// Quy tắc cộng đồng: sửa nội dung; "phát hành phiên bản mới" thì mọi thành viên phải đọc và đồng ý lại khi mở app
+function TheQuyTac({ goc }) {
+  const bao = useToast()
+  const [qt, setQt] = useState(goc?.muc?.length ? goc : QUY_TAC_GOC)
+  const [moi, setMoi] = useState(false)
+  const [dang, setDang] = useState(false)
+  const { data: tk, reload } = useAsync(() => rpc('fn_qt_quy_tac_thong_ke'), [])
+  const dat = (k, x) => setQt({ ...qt, [k]: x })
+  const luu = async () => {
+    const pb = Number(qt.phien_ban) || 1
+    const ban = { ...qt, muc: qt.muc.map((m) => ({ t: String(m.t || '').trim(), d: String(m.d || '').trim() })).filter((m) => m.t && m.d), phien_ban: moi ? pb + 1 : pb, ngay: moi ? homNay() : qt.ngay }
+    if (!ban.muc.length) { bao('Cần ít nhất 1 quy tắc có tên và nội dung', 'loi'); return }
+    setDang(true)
+    try {
+      await rpc('fn_qt_cau_hinh_luu', { p_khoa: 'quy_tac', p_gia_tri: ban })
+      setQt(ban); setMoi(false); lamMoiCauHinh(); reload()
+      bao(moi ? `Đã phát hành phiên bản ${ban.phien_ban}. Thành viên sẽ được yêu cầu đọc và đồng ý lại.` : 'Đã lưu Quy tắc cộng đồng')
+    } catch (e) { bao(e.message, 'loi') } finally { setDang(false) }
+  }
+  return (
+    <div className="card cot" style={{ gap: 12 }}>
+      <div className="dau-the">
+        <div><h2>Quy tắc cộng đồng</h2><p className="nho muted" style={{ marginTop: 2 }}>Phiên bản {qt.phien_ban}{qt.ngay ? ' · áp dụng từ ' + fmtNgay(qt.ngay) : ''}. Thành viên đồng ý khi đăng ký; người cũ xác nhận 1 lần khi mở app.</p></div>
+        <Btn co="sm" kieu="den" icon={Save} loading={dang} onClick={luu}>{moi ? 'Phát hành' : 'Lưu'}</Btn>
+      </div>
+      {tk && <ThanhTienDo pct={tk.tong ? (tk.da_dong_y / tk.tong) * 100 : 0} nhan={`Đã đồng ý phiên bản ${tk.phien_ban}`} so={<><b>{tk.da_dong_y}</b>/{tk.tong} thành viên</>} />}
+      <div className="luoi-form">
+        <Field nhan="Tiêu đề" value={qt.tieu_de} onChange={(e) => dat('tieu_de', e.target.value)} />
+        <Field nhan="Khẩu hiệu" value={qt.khau_hieu} onChange={(e) => dat('khau_hieu', e.target.value)} goiY="Các giá trị cách nhau bằng dấu –" />
+      </div>
+      <DsDong ds={qt.muc} onDoi={(x) => dat('muc', x)} nutThem="Thêm quy tắc" moi={() => ({ t: '', d: '' })}
+        dong={(m, sua, i) => <><Field kieu="gon" nhan={`Quy tắc ${i + 1}`} value={m.t} onChange={(e) => sua({ t: e.target.value })} /><TextArea nhan="Nội dung" rows={3} value={m.d} onChange={(e) => sua({ d: e.target.value })} /></>} />
+      <TextArea nhan="Lời kết" rows={2} value={qt.ket || ''} onChange={(e) => dat('ket', e.target.value)} />
+      <DongSwitch nhan="Phát hành phiên bản mới" moTa={`Lưu thành phiên bản ${(Number(qt.phien_ban) || 1) + 1}: mọi thành viên phải đọc và đồng ý lại. Chỉ bật khi nội dung quy tắc thay đổi.`} on={moi} onDoi={setMoi} />
+    </div>
+  )
+}
+
 function CauHinh() {
   const { ns } = useQt()
   const laQT = ns?.vai_tro === 'quan_tri'
@@ -159,6 +198,7 @@ function CauHinh() {
         <TextArea nhan="Tỉnh / thành" rows={8} value={c.tinh_thanh} onChange={(e) => dat('tinh_thanh', e.target.value)} />
       </TheCH>
       {laQT && <XacThucEmail batSan={d.bat_buoc_xac_thuc === true} />}
+      {laQT && <TheQuyTac goc={d.quy_tac} />}
       {laQT && <>
         <TheCH tieuDe="Điều khoản tham gia" moTa="Bản nháp — cần pháp chế duyệt trước khi chạy chính thức." khoa="dieu_khoan" onLuu={() => c.dieu_khoan}>
           <TextArea nhan="Nội dung (hỗ trợ ## tiêu đề, - gạch đầu dòng)" rows={10} value={c.dieu_khoan} onChange={(e) => dat('dieu_khoan', e.target.value)} />

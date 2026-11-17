@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { Bell, BookOpen, CalendarDays, Download, Gift, Home, LifeBuoy, LogOut, Megaphone, ShoppingBag, UserRound, Shield, Store } from 'lucide-react'
+import { Bell, BookOpen, CalendarDays, Download, Gift, Home, LifeBuoy, LogOut, Megaphone, ShoppingBag, UserRound, Shield, ShieldCheck, Store } from 'lucide-react'
 import { CaiDatApp } from '../components/caidat'
 import { useAuth } from '../components/auth'
 import { Brand, Btn, IconBtn, Spinner } from '../components/ui'
@@ -12,6 +12,7 @@ import { DsSanPham, CtSanPham } from './SanPham'
 import { DsChienDich, CtChienDich } from './ChienDich'
 import { LichCuaToi, DatLich } from './LichQuay'
 import { UuDai, DsTaiNguyen, CtTaiNguyen, ThongBao, DsHoTro, CtHoTro, Toi } from './Khac'
+import { CongQuyTac, QuyTacCongKhai, TrangQuyTac } from './QuyTac'
 
 // Cấu hình công khai (Zalo, FAQ, điều khoản…) — tải 1 lần, dùng chung
 let boNhoCK = null
@@ -31,6 +32,7 @@ const MUC = [
   { to: '/tai-nguyen', ten: 'Hướng dẫn & tài nguyên', ic: BookOpen, nhom: 'toi' },
   { to: '/thong-bao', ten: 'Thông báo', ic: Bell, chuaDoc: true, nhom: 'toi' },
   { to: '/ho-tro', ten: 'Hỗ trợ', ic: LifeBuoy, nhom: 'toi' },
+  { to: '/quy-tac', ten: 'Quy tắc cộng đồng', ic: ShieldCheck, nhom: 'toi' },
   { to: '/toi', ten: 'Tài khoản', ic: UserRound, nhom: 'toi' }
 ]
 const NAV_DUOI = [
@@ -84,6 +86,7 @@ function KhungThanhVien({ children }) {
           </NavLink>
         ))}
       </nav>
+      <CongQuyTac />
     </div>
   )
 }
@@ -130,7 +133,7 @@ export default function CongThanhVien() {
   }
   if (dangKiem) return <div className="tv" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}><Spinner size={30} /></div>
   if (ns) return <LaNhanSu ns={ns} thoat={thoat} />
-  if (!tv) return loc.pathname === '/' ? <LandingPage /> : <CanDangNhap />
+  if (!tv) return loc.pathname === '/' ? <LandingPage /> : loc.pathname === '/quy-tac' ? <QuyTacCongKhai /> : <CanDangNhap />
   return (
     <KhungThanhVien>
       <Routes>
@@ -146,6 +149,7 @@ export default function CongThanhVien() {
         <Route path="/tai-nguyen/:id" element={<CtTaiNguyen />} />
         <Route path="/thong-bao" element={<ThongBao />} />
         <Route path="/ho-tro" element={<DsHoTro />} />
+        <Route path="/quy-tac" element={<TrangQuyTac />} />
         <Route path="/ho-tro/:id" element={<CtHoTro />} />
         <Route path="/toi" element={<Toi />} />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, BadgeCheck, CalendarDays, ChevronDown, Eye, EyeOff, Megaphone, Plus, ShoppingBag, Sparkles, Trash2, Users, MailCheck, KeyRound, CircleAlert, Percent, Download, Copy, Smartphone, Zap, Maximize2, Feather } from 'lucide-react'
+import { ArrowRight, BadgeCheck, CalendarDays, ChevronDown, Eye, EyeOff, Megaphone, Plus, ShoppingBag, Sparkles, Trash2, Users, MailCheck, KeyRound, CircleAlert, Percent, Download, Copy, Smartphone, Zap, Maximize2, Feather, ScrollText } from 'lucide-react'
 import { Brand, Btn, Chon, Field, IconBtn, Bao, Spinner, ThanhTienDo, Chips, MaQR, saoChep, useToast } from '../components/ui'
 import { CaiDatApp, NoiDungCai, linkTaiApp, useCaiDat } from '../components/caidat'
 import { useAuth } from '../components/auth'
 import { dangNhap, rpc, taiKhoan } from '../lib/api'
 import { NEN_TANG } from '../lib/hang'
 import { useCongKhai } from './Cong'
+import { ChuQuyTac, DongYQuyTacDangKy } from './QuyTac'
+import { layQuyTac } from '../lib/quytac'
 
 const IC_QL = [ShoppingBag, CalendarDays, Megaphone, Users]
 
@@ -90,15 +92,27 @@ export function LandingPage() {
           </div>
         </section>
 
+        <section className="lp-muc">
+          <div className="lp-qt">
+            <span className="qt-mat" aria-hidden="true"><ScrollText size={22} strokeWidth={2.2} /></span>
+            <div className="gian">
+              <p className="eyebrow">Quy tắc cộng đồng</p>
+              <h3>{layQuyTac(ck).khau_hieu}</h3>
+              <p>{layQuyTac(ck).muc.length} quy tắc chung để cộng đồng Affiliate Nón Sơn minh bạch, chuyên nghiệp và cùng phát triển bền vững.</p>
+            </div>
+            <Link to="/quy-tac" className="btn trang">Đọc quy tắc<ArrowRight size={16} /></Link>
+          </div>
+        </section>
+
         {(ck?.faq || []).length > 0 && (
           <section className="lp-muc lp-faq">
             <p className="eyebrow">Câu hỏi thường gặp</p>
             <h2 style={{ marginTop: 8, marginBottom: 10 }}>Bạn <b>thắc mắc</b>?</h2>
-            {ck.faq.map((f, i) => <details key={i}><summary>{f.h}<ChevronDown size={18} /></summary><p>{f.d}</p></details>)}
+            {ck.faq.map((f, i) => <details key={i}><summary>{f.h}<ChevronDown size={18} /></summary><p><ChuQuyTac chu={f.d} /></p></details>)}
           </section>
         )}
         <footer className="lp-chan">
-          © Nón Sơn · <Link to="/dieu-khoan">Điều khoản</Link> · <Link to="/chinh-sach">Chính sách dữ liệu</Link> · <a href="https://nonson.vn" target="_blank" rel="noreferrer">nonson.vn</a>
+          © Nón Sơn · <Link to="/quy-tac">Quy tắc cộng đồng</Link> · <Link to="/dieu-khoan">Điều khoản</Link> · <Link to="/chinh-sach">Chính sách dữ liệu</Link> · <a href="https://nonson.vn" target="_blank" rel="noreferrer">nonson.vn</a>
         </footer>
       </div>
     </div>
@@ -170,7 +184,7 @@ export function DangKy() {
   const bao = useToast()
   const { taiToi } = useAuth()
   const [buoc, setBuoc] = useState(0)
-  const [f, setF] = useState({ email: '', mat_khau: '', mat_khau2: '', ho_ten: '', dien_thoai: '', ngay_sinh: '', tinh_thanh: '', kinh_nghiem: 'moi', shopee_aff: '', kenh: [{ ...KENH_MOI }], dong_y: false, web: '' })
+  const [f, setF] = useState({ email: '', mat_khau: '', mat_khau2: '', ho_ten: '', dien_thoai: '', ngay_sinh: '', tinh_thanh: '', kinh_nghiem: 'moi', shopee_aff: '', kenh: [{ ...KENH_MOI }], dong_y: false, dong_y_qt: false, web: '' })
   const [loi, setLoi] = useState('')
   const [dang, setDang] = useState(false)
   const dat = (k, v) => setF((x) => ({ ...x, [k]: v }))
@@ -186,6 +200,7 @@ export function DangKy() {
       if (f.ho_ten.trim().length < 2) return 'Vui lòng nhập họ và tên.'
       if (!/^0\d{9}$/.test(f.dien_thoai.replace(/\D/g, ''))) return 'Số điện thoại cần 10 số, bắt đầu bằng 0.'
       if (!f.tinh_thanh) return 'Chọn tỉnh/thành bạn đang sống.'
+      if (!f.dong_y_qt) return 'Bạn cần đọc và đồng ý Quy tắc cộng đồng Affiliate Nón Sơn.'
       if (!f.dong_y) return 'Bạn cần đồng ý Điều khoản và Chính sách dữ liệu.'
     }
     return ''
@@ -202,6 +217,7 @@ export function DangKy() {
         kenh: f.kenh.filter((k) => k.link.trim()), dong_y: f.dong_y, web: f.web
       })
       await dangNhap(f.email.trim(), f.mat_khau)
+      try { await rpc('fn_dong_y_quy_tac') } catch { /* chưa ghi được thì app sẽ hỏi lại lúc mở */ }
       await taiToi()
       bao(`Chào mừng ${f.ho_ten.trim().split(' ').pop()}! Mã thành viên của bạn: ${kq.ma}.${ck?.bat_buoc_xac_thuc ? ' Kiểm tra email để xác nhận tài khoản.' : ''}`, 'hong', { ms: 6000 })
       nav('/', { replace: true })
@@ -243,7 +259,9 @@ export function DangKy() {
             ))}
             {f.kenh.length < 5 && <Btn kieu="vien" co="sm" icon={Plus} onClick={() => dat('kenh', [...f.kenh, { ...KENH_MOI }])}>Thêm kênh</Btn>}
           </>}
-          <label className="o-dong-y" style={{ marginTop: 6 }}>
+          <div style={{ marginTop: 6 }} />
+          <DongYQuyTacDangKy daDongY={f.dong_y_qt} onDoi={(v) => dat('dong_y_qt', v)} />
+          <label className="o-dong-y">
             <input type="checkbox" checked={f.dong_y} onChange={(e) => dat('dong_y', e.target.checked)} />
             <span>Tôi đồng ý <Link to="/dieu-khoan" target="_blank">Điều khoản tham gia</Link> và <Link to="/chinh-sach" target="_blank">Chính sách dữ liệu cá nhân</Link> của Nón Sơn.</span>
           </label>

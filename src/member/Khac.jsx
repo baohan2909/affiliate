@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
-  Bell, BookOpen, CalendarDays, CheckCheck, Download, ExternalLink, FileText, Film, Gift, Heart, Image as IcAnh, KeyRound, LifeBuoy, Link2, Lock, LogOut, Megaphone, Pin, Plus, ScrollText, Search, Send, Star, Trash2, UserRound
+  Bell, BookOpen, CalendarDays, CheckCheck, Download, ExternalLink, FileText, Film, Gift, Heart, Image as IcAnh, KeyRound, LifeBuoy, Link2, Lock, LogOut, Megaphone, Pin, Plus, ScrollText, Search, Send, ShieldCheck, ChevronRight, Star, Trash2, UserRound
 } from 'lucide-react'
 import { CaiDatApp, TheCaiApp } from '../components/caidat'
 import { KetNoiShopee } from './SanPham'
@@ -13,6 +13,8 @@ import { rpc, linkTai, doiMatKhau } from '../lib/api'
 import { fmtDungLuong, fmtNgay, fmtNgayGio, fmtNgayThu, khop, tuongDoi, chuCai } from '../lib/format'
 import { LOAI_UU_DAI, LOAI_TN, LOAI_HO_TRO, TT_HO_TRO, TT_LICH, TT_BAI, TT_DANG_KY, NEN_TANG, KINH_NGHIEM, LOAI_TB } from '../lib/hang'
 import { useCongKhai } from './Cong'
+import { ChuQuyTac } from './QuyTac'
+import { canDongYQT } from '../lib/quytac'
 
 const moLienKet = (nav, url) => {
   if (!url) return
@@ -259,7 +261,7 @@ export function DsHoTro() {
                 {ck.faq.map((x, i) => (
                   <div key={i} className={'muc' + (mFaq === i ? ' mo' : '')} style={{ borderBottom: '1px solid var(--line)' }}>
                     <button type="button" className="hoi" onClick={() => setMFaq(mFaq === i ? -1 : i)} style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '12px 0', fontWeight: 700, fontSize: 14, color: 'var(--ink)' }}>{x.h}</button>
-                    {mFaq === i && <div className="nho muted-2" style={{ paddingBottom: 12, whiteSpace: 'pre-line' }}>{x.d}</div>}
+                    {mFaq === i && <div className="nho muted-2" style={{ paddingBottom: 12, whiteSpace: 'pre-line' }}><ChuQuyTac chu={x.d} /></div>}
                   </div>
                 ))}
               </div>
@@ -482,6 +484,7 @@ function CaiDat({ tv }) {
 
 // Lưới tiện ích trang Tài khoản (thay cho menu phụ trên điện thoại)
 function MenuToi({ tv }) {
+  const ck = useCongKhai()
   const [kn, setKn] = useState(false)
   const chuaDoc = tv.chua_doc || 0
   const o = [
@@ -497,6 +500,11 @@ function MenuToi({ tv }) {
         <button type="button" onClick={() => setKn(true)}><span className={'ic' + (tv.shopee_aff_id ? ' ok' : '')}><Link2 size={20} /></span>{tv.shopee_aff_id ? 'Shopee đã kết nối' : 'Kết nối Shopee'}</button>
         <CaiDatApp dienThoai render={(bam) => <button type="button" onClick={bam}><span className="ic"><Download size={20} /></span>Tải ứng dụng</button>} />
       </nav>
+      <Link to="/quy-tac" className="dong-lk dong-qt">
+        <span className="ic"><ShieldCheck size={18} /></span>
+        <div className="gian"><b>Quy tắc cộng đồng</b><span>{tv.dong_y_quy_tac_luc && !canDongYQT(tv, ck) ? 'Bạn đã đồng ý ngày ' + fmtNgay(tv.dong_y_quy_tac_luc) : 'Tự do sáng tạo – Minh bạch – Trách nhiệm – Cùng phát triển'}</span></div>
+        <ChevronRight size={18} className="mui" />
+      </Link>
       <KetNoiShopee mo={kn} dong={() => setKn(false)} onXong={() => setKn(false)} />
     </>
   )
