@@ -132,7 +132,7 @@ export default function CongThanhVien() {
     )
   }
   if (dangKiem) return <div className="tv" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}><Spinner size={30} /></div>
-  if (ns) return <LaNhanSu ns={ns} thoat={thoat} />
+  if (ns) return loc.pathname === '/quy-tac' ? <QuyTacCongKhai /> : <LaNhanSu ns={ns} thoat={thoat} />
   if (!tv) return loc.pathname === '/' ? <LandingPage /> : loc.pathname === '/quy-tac' ? <QuyTacCongKhai /> : <CanDangNhap />
   return (
     <KhungThanhVien>
