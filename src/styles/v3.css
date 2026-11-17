@@ -362,3 +362,47 @@
 @media (max-width: 640px) { .lp-qt { flex-direction: column; align-items: flex-start; padding: 20px; } .lp-qt h3 { font-size: 18px; } }
 /* Tài khoản: dòng Quy tắc cộng đồng dưới lưới tiện ích */
 .dong-qt .ic { background: linear-gradient(135deg, #F7DE97 0%, #D3A345 55%, #B98A2F 100%); color: #3B2805; }
+
+/* ---------- Trang "Nón Sơn đang hoàn thiện hệ thống" ---------- */
+.ht { position: relative; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; overflow: hidden; isolation: isolate; color: #fff; background: linear-gradient(160deg, #2B0E20 0%, #170812 48%, #0E050A 100%); }
+.ht-nen { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.ht-nen i { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .55; animation: htTroi 14s ease-in-out infinite alternate; }
+.ht-nen .g1 { width: 460px; height: 460px; right: -140px; top: -160px; background: radial-gradient(circle, rgba(240,57,154,.75), rgba(224,21,126,0) 70%); }
+.ht-nen .g2 { width: 380px; height: 380px; left: -150px; bottom: -120px; background: radial-gradient(circle, rgba(233,196,108,.45), rgba(233,196,108,0) 70%); animation-delay: -5s; }
+.ht-nen .g3 { width: 300px; height: 300px; left: 45%; top: 55%; background: radial-gradient(circle, rgba(180,0,94,.35), rgba(180,0,94,0) 70%); animation-delay: -9s; }
+@keyframes htTroi { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(-30px, 24px, 0) scale(1.08); } }
+.ht-dau { display: flex; align-items: center; justify-content: space-between; padding: calc(18px + env(safe-area-inset-top)) 24px 0; }
+.ht-than { flex: 1; width: 100%; max-width: 620px; margin: 0 auto; padding: 40px 24px 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.ht-logo { position: relative; width: 132px; height: 132px; display: flex; align-items: center; justify-content: center; margin-bottom: 26px; }
+.ht-logo .logo-o { position: relative; z-index: 1; box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), 0 0 34px rgba(240,57,154,.35); }
+.ht-vong { position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(255,255,255,.14); animation: htVong 3.2s ease-out infinite; }
+.ht-vong.v2 { animation-delay: 1.6s; }
+@keyframes htVong { 0% { transform: scale(.66); opacity: .9; } 100% { transform: scale(1.18); opacity: 0; } }
+.ht-eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #F2D58A; }
+.ht h1 { margin-top: 12px; font-size: 38px; font-weight: 800; line-height: 1.18; letter-spacing: -.02em; text-wrap: balance; }
+.ht-mo { margin-top: 14px; max-width: 520px; font-size: 16.5px; line-height: 1.65; color: rgba(255,255,255,.74); text-wrap: pretty; }
+.ht-tien { display: inline-flex; align-items: center; gap: 12px; margin-top: 26px; font-size: 12.5px; font-weight: 700; letter-spacing: .04em; color: rgba(255,255,255,.62); }
+.ht-thanh { position: relative; width: 120px; height: 4px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.12); }
+.ht-thanh i { position: absolute; top: 0; bottom: 0; left: 0; width: 40%; border-radius: 99px; background: linear-gradient(90deg, rgba(242,213,138,0), #F2D58A, rgba(242,213,138,0)); animation: htChay 1.8s ease-in-out infinite; }
+@keyframes htChay { from { transform: translateX(-110%); } to { transform: translateX(260%); } }
+.ht-ngay { display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; height: 36px; padding: 0 16px; border-radius: 99px; background: rgba(255,255,255,.08); box-shadow: inset 0 0 0 1px rgba(242,213,138,.3); font-size: 13.5px; color: rgba(255,255,255,.82); }
+.ht-ngay svg { color: #F2D58A; }
+.ht-ngay b { color: #fff; }
+.ht-nut { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 30px; }
+.ht-nut .btn { gap: 8px; }
+.ht-nut .btn svg { flex: none; }
+.ht-chan { padding: 0 24px calc(22px + env(safe-area-inset-bottom)); text-align: center; font-size: 13.5px; color: rgba(255,255,255,.5); }
+.ht-chan a { color: #fff; font-weight: 700; }
+.ht-chan span { margin: 0 8px; }
+@media (max-width: 560px) {
+  .ht-dau { padding: calc(14px + env(safe-area-inset-top)) 18px 0; }
+  .ht-than { padding: 28px 20px 24px; }
+  .ht-logo { width: 112px; height: 112px; margin-bottom: 22px; }
+  .ht h1 { font-size: 28px; }
+  .ht-eyebrow { letter-spacing: .12em; }
+  .ht-mo { font-size: 15px; }
+  .ht-nut { flex-direction: column; align-self: stretch; }
+  .ht-nut .btn { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .ht-nen i, .ht-vong, .ht-thanh i { animation: none; } }
+.ht-ban-quyen { font-weight: 400; white-space: nowrap; }

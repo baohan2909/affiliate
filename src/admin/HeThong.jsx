@@ -7,6 +7,7 @@ import { rpc, sb, taiKhoan } from '../lib/api'
 import { SUPABASE_URL, SUPABASE_KEY } from '../config'
 import { fmtNgay, fmtNgayGio, homNay, congNgay, khop, tuongDoi } from '../lib/format'
 import { QUY_TAC_GOC } from '../lib/quytac'
+import { NOI_DUNG_HT, TIEU_DE_HT } from '../lib/baotri'
 import { TT_THU, VAI_TRO } from '../lib/hang'
 import { BangDL, DsDong, ONhapAnh, OTim, lamMoiCauHinh } from './chung'
 import { useQt } from './Cong'
@@ -94,6 +95,36 @@ function TheCH({ tieuDe, moTa, children, onLuu, khoa }) {
     <div className="card cot" style={{ gap: 12 }}>
       <div className="dau-the"><div><h2>{tieuDe}</h2>{moTa && <p className="nho muted" style={{ marginTop: 2 }}>{moTa}</p>}</div><Btn co="sm" kieu="den" icon={Save} loading={dang} onClick={luu}>Lưu</Btn></div>
       {children}
+    </div>
+  )
+}
+
+// Trang "đang hoàn thiện": bật thì khách vào trang giới thiệu/đăng ký thấy thông báo, máy chủ từ chối đăng ký mới
+function TheBaoTri({ goc }) {
+  const bao = useToast()
+  const [bt, setBt] = useState({ bat: false, tieu_de: TIEU_DE_HT, noi_dung: NOI_DUNG_HT, ngay: '', ...(goc || {}) })
+  const [dang, setDang] = useState(false)
+  const dat = (k, x) => setBt({ ...bt, [k]: x })
+  const luu = async () => {
+    setDang(true)
+    try {
+      const ban = { bat: !!bt.bat, tieu_de: String(bt.tieu_de || '').trim() || TIEU_DE_HT, noi_dung: String(bt.noi_dung || '').trim() || NOI_DUNG_HT, ngay: bt.ngay || null }
+      await rpc('fn_qt_cau_hinh_luu', { p_khoa: 'bao_tri', p_gia_tri: ban })
+      setBt(ban); lamMoiCauHinh()
+      bao(ban.bat ? 'Đã bật trang "đang hoàn thiện", tạm dừng đăng ký mới' : 'Đã mở lại đăng ký và trang giới thiệu')
+    } catch (e) { bao(e.message, 'loi') } finally { setDang(false) }
+  }
+  return (
+    <div className="card cot" style={{ gap: 12 }}>
+      <div className="dau-the">
+        <div><h2>Trang đang hoàn thiện</h2><p className="nho muted" style={{ marginTop: 2 }}>Khi bật: trang giới thiệu, đăng ký, tải app hiện thông báo; không ai đăng ký mới được. Thành viên cũ vẫn đăng nhập bình thường.</p></div>
+        <Btn co="sm" kieu="den" icon={Save} loading={dang} onClick={luu}>Lưu</Btn>
+      </div>
+      <DongSwitch nhan={bt.bat ? 'Đang tạm dừng đăng ký' : 'Đang mở đăng ký'} moTa={bt.bat ? 'Khách thấy trang "đang hoàn thiện". Tắt rồi bấm Lưu để mở lại.' : 'Bật rồi bấm Lưu để tạm dừng đăng ký.'} on={!!bt.bat} onDoi={(x) => dat('bat', x)} />
+      <Field nhan="Tiêu đề" value={bt.tieu_de || ''} onChange={(e) => dat('tieu_de', e.target.value)} />
+      <TextArea nhan="Lời nhắn" rows={3} value={bt.noi_dung || ''} onChange={(e) => dat('noi_dung', e.target.value)} />
+      <Field nhan="Dự kiến mở đăng ký" type="date" value={bt.ngay || ''} onChange={(e) => dat('ngay', e.target.value)} goiY="Để trống nếu chưa có ngày" />
+      <a className="lien-ket nho" href="/gioi-thieu" target="_blank" rel="noreferrer">Xem trang khách đang thấy</a>
     </div>
   )
 }
@@ -198,6 +229,7 @@ function CauHinh() {
         <TextArea nhan="Tỉnh / thành" rows={8} value={c.tinh_thanh} onChange={(e) => dat('tinh_thanh', e.target.value)} />
       </TheCH>
       {laQT && <XacThucEmail batSan={d.bat_buoc_xac_thuc === true} />}
+      {laQT && <TheBaoTri goc={d.bao_tri} />}
       {laQT && <TheQuyTac goc={d.quy_tac} />}
       {laQT && <>
         <TheCH tieuDe="Điều khoản tham gia" moTa="Bản nháp — cần pháp chế duyệt trước khi chạy chính thức." khoa="dieu_khoan" onLuu={() => c.dieu_khoan}>

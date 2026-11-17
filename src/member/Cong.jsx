@@ -13,6 +13,7 @@ import { DsChienDich, CtChienDich } from './ChienDich'
 import { LichCuaToi, DatLich } from './LichQuay'
 import { UuDai, DsTaiNguyen, CtTaiNguyen, ThongBao, DsHoTro, CtHoTro, Toi } from './Khac'
 import { CongQuyTac, QuyTacCongKhai, TrangQuyTac } from './QuyTac'
+import TrangHoanThien from './HoanThien'
 
 // Cấu hình công khai (Zalo, FAQ, điều khoản…) — tải 1 lần, dùng chung
 let boNhoCK = null
@@ -115,6 +116,14 @@ function LaNhanSu({ ns, thoat }) {
 export default function CongThanhVien() {
   const { dangKiem, tv, ns, thoat } = useAuth()
   const loc = useLocation()
+  const ck = useCongKhai()
+  // Quản trị bật "đang hoàn thiện": trang giới thiệu, đăng ký, tải app hiện thông báo; đăng nhập vẫn mở cho người đã có tài khoản
+  const baoTri = !!ck?.bao_tri?.bat
+  const choCK = <div className="tv" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}><Spinner size={30} /></div>
+  if (['/gioi-thieu', '/dang-ky', '/tai-app'].includes(loc.pathname)) {
+    if (!ck) return choCK
+    if (baoTri) return <TrangHoanThien />
+  }
   const congKhai = ['/gioi-thieu', '/dang-ky', '/dang-nhap', '/quen-mat-khau', '/dat-lai-mat-khau', '/xac-thuc', '/dieu-khoan', '/chinh-sach', '/tai-app']
   if (congKhai.some((p) => loc.pathname === p)) {
     return (
@@ -133,7 +142,7 @@ export default function CongThanhVien() {
   }
   if (dangKiem) return <div className="tv" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}><Spinner size={30} /></div>
   if (ns) return loc.pathname === '/quy-tac' ? <QuyTacCongKhai /> : <LaNhanSu ns={ns} thoat={thoat} />
-  if (!tv) return loc.pathname === '/' ? <LandingPage /> : loc.pathname === '/quy-tac' ? <QuyTacCongKhai /> : <CanDangNhap />
+  if (!tv) return loc.pathname === '/' ? (!ck ? choCK : baoTri ? <TrangHoanThien /> : <LandingPage />) : loc.pathname === '/quy-tac' ? <QuyTacCongKhai /> : <CanDangNhap />
   return (
     <KhungThanhVien>
       <Routes>
