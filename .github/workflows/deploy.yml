@@ -3,7 +3,14 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: [main]
+  # Chạy tay (GitHub → Actions → Deploy GitHub Pages → Run workflow): điền "ban" để quay về một bản đã lưu,
+  # vd. ban-on-dinh-21-11-2026; để trống = bản mới nhất trên main.
   workflow_dispatch:
+    inputs:
+      ban:
+        description: 'Bản cần chạy (vd. ban-on-dinh-21-11-2026). Để trống = bản mới nhất'
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -19,6 +26,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ban || github.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: 20
