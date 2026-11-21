@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Copy, ExternalLink, KeyRound, Link2, PlugZap, RefreshCw, RotateCcw, Save, ShieldCheck, UserPlus } from 'lucide-react'
+import { Copy, ExternalLink, GitBranch, History, KeyRound, Link2, PlugZap, RefreshCw, RotateCcw, Save, ShieldCheck, UserPlus } from 'lucide-react'
 import { Bao, Btn, Chips, Chon, DongSwitch, Field, KhungTai, LoiTai, MaQR, Modal, Nhan, Segment, TextArea, ThanhTienDo, TrangDau, saoChep, useToast, useXacNhan } from '../components/ui'
 import { useAsync } from '../lib/hooks'
 import { rpc, sb, taiKhoan } from '../lib/api'
@@ -12,6 +12,7 @@ import { TT_THU, VAI_TRO } from '../lib/hang'
 import { BangDL, DsDong, ONhapAnh, OTim, lamMoiCauHinh } from './chung'
 import { useQt } from './Cong'
 import { ThanhKenh } from '../components/kenh'
+import { goiSoc } from './Soc'
 
 // ================= NHÂN SỰ =================
 function MatKhauMoi({ kq, dong }) {
@@ -167,6 +168,59 @@ function TheQuyTac({ goc }) {
   )
 }
 
+// ---------- Phiên bản & quay về: một chạm đưa app về bản ổn định (trước khi có Sóc Tia Chớp) ----------
+const BAN_ON_DINH = 'ban-on-dinh-21-11-2026'
+const URL_ACTIONS = 'https://github.com/baohan2909/affiliate/actions/workflows/deploy.yml'
+export function ThePhienBan() {
+  const bao = useToast()
+  const xacNhan = useXacNhan()
+  const { data: d, reload } = useAsync(() => rpc('fn_qt_soc'), [])
+  const [gh, setGh] = useState('')
+  const [dang, setDang] = useState('')
+  const coGh = !!d?.cai_dat?.co_gh
+  const luuGh = async () => {
+    setDang('gh')
+    try { await rpc('fn_qt_soc_luu', { p: { gh_token: gh } }); setGh(''); reload(true); bao('Đã lưu mã GitHub') } catch (e) { bao(e.message, 'loi') } finally { setDang('') }
+  }
+  const quayVe = async () => {
+    if (!(await xacNhan({ tieuDe: 'Quay về bản ổn định 21/11/2026?', nguyHiem: true, nut: 'Quay về',
+      moTa: 'Sóc Tia Chớp dừng ngay, lịch chạy của Sóc được gỡ, các hàm máy chủ trở lại như ngày 21/11/2026 và giao diện được dựng lại từ bản đó (khoảng 2 phút). Dữ liệu thành viên, sản phẩm, bài Sóc đã viết giữ nguyên.' }))) return
+    setDang('ve')
+    try {
+      const k = await rpc('fn_qt_quay_ve_ban', { p_ban: BAN_ON_DINH })
+      let gd = false
+      if (coGh) { try { gd = (await goiSoc('quay_ve')).github } catch (e) { bao('Máy chủ đã quay về; giao diện chưa dựng lại được: ' + e.message, 'loi') } }
+      bao(`Đã quay về: ${k.ham_khoi_phuc} hàm khôi phục, ${k.lich_go} lịch gỡ.` + (gd ? ' Giao diện đang dựng lại, mở lại app sau khoảng 2 phút.' : ''))
+      if (!coGh) window.open(URL_ACTIONS, '_blank', 'noopener')
+    } catch (e) { bao(e.message, 'loi') } finally { setDang('') }
+  }
+  const veMoi = async () => {
+    setDang('moi')
+    try { await rpc('fn_qt_ve_ban_moi'); if (coGh) await goiSoc('ve_ban_moi'); bao(coGh ? 'Đang dựng lại bản mới nhất, mở lại app sau khoảng 2 phút' : 'Đã bật lại lịch của Sóc. Giao diện: chạy lại workflow trên GitHub, để trống ô Bản.'); if (!coGh) window.open(URL_ACTIONS, '_blank', 'noopener') } catch (e) { bao(e.message, 'loi') } finally { setDang('') }
+  }
+  return (
+    <div className="card cot" style={{ gap: 12 }}>
+      <div className="dau-the">
+        <div><h2>Phiên bản &amp; quay về</h2><p className="nho muted" style={{ marginTop: 2 }}>Đã sao lưu toàn bộ hàm máy chủ, cấu hình, lịch chạy và mã giao diện lúc 21/11/2026, trước khi có Sóc Tia Chớp.</p></div>
+      </div>
+      <div className="pb-o">
+        <span className="ic"><History size={19} /></span>
+        <div className="gian"><b>Bản ổn định 21/11/2026</b><span>Nhánh {BAN_ON_DINH}</span></div>
+        <Btn co="sm" kieu="do" icon={RotateCcw} loading={dang === 've'} onClick={quayVe}>Quay về</Btn>
+      </div>
+      <div className="pb-o">
+        <span className="ic"><GitBranch size={19} /></span>
+        <div className="gian"><b>Bản mới nhất</b><span>Có Sóc Tia Chớp · nhánh main</span></div>
+        <Btn co="sm" kieu="vien" icon={RefreshCw} loading={dang === 'moi'} onClick={veMoi}>Dùng lại</Btn>
+      </div>
+      <Field nhan={'Mã GitHub để dựng lại giao diện bằng 1 chạm' + (coGh ? ' · đã lưu' : '')} type="password" autoComplete="off" value={gh} onChange={(e) => setGh(e.target.value.trim())}
+        placeholder={coGh ? 'Đã lưu · nhập để thay' : 'github_pat_…'}
+        goiY="github.com → Settings → Developer settings → Fine-grained tokens → chỉ repo affiliate, quyền Actions: Read and write. Chưa có mã: bấm Quay về sẽ mở trang GitHub Actions, bấm Run workflow và nhập tên bản ở trên." />
+      {gh && <div><Btn co="sm" kieu="den" icon={Save} loading={dang === 'gh'} onClick={luuGh}>Lưu mã GitHub</Btn></div>}
+    </div>
+  )
+}
+
 function CauHinh() {
   const { ns } = useQt()
   const laQT = ns?.vai_tro === 'quan_tri'
@@ -229,6 +283,7 @@ function CauHinh() {
         <TextArea nhan="Tỉnh / thành" rows={8} value={c.tinh_thanh} onChange={(e) => dat('tinh_thanh', e.target.value)} />
       </TheCH>
       {laQT && <XacThucEmail batSan={d.bat_buoc_xac_thuc === true} />}
+      {laQT && <ThePhienBan />}
       {laQT && <TheBaoTri goc={d.bao_tri} />}
       {laQT && <TheQuyTac goc={d.quy_tac} />}
       {laQT && <>

@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Users, Layers, ShoppingBag, Megaphone, Gift, CalendarDays, Store, BookOpen, Bell, LifeBuoy, Settings,
-  LogOut, PanelLeftClose, PanelLeftOpen, Menu, KeyRound, Eye, EyeOff, ArrowRight, MonitorDown
+  LogOut, PanelLeftClose, PanelLeftOpen, Menu, KeyRound, Eye, EyeOff, ArrowRight, MonitorDown, Zap
 } from 'lucide-react'
 import { CaiDatApp, useManifest } from '../components/caidat'
 import { useAuth } from '../components/auth'
@@ -18,6 +18,7 @@ import { ChienDich, UuDai } from './ChienDich'
 import { LichQuay, CuaHang } from './LichQuay'
 import { TaiNguyen, ThongBao, HoTro } from './NoiDung'
 import HeThong from './HeThong'
+import Soc from './Soc'
 
 // Số việc đang chờ (hiện huy hiệu trên menu) — dùng chung cho cả cổng quản trị
 const QtCtx = createContext({ cho: {}, taiCho: () => {} })
@@ -35,7 +36,8 @@ const MUC = [
   { to: 'nhom-cap-do', ten: 'Nhóm & cấp độ', ic: Layers },
   { to: 'uu-dai', ten: 'Ưu đãi', ic: Gift },
   { to: 'thong-bao', ten: 'Thông báo', ic: Bell },
-  { to: 'he-thong', ten: 'Hệ thống', ic: Settings, nhom: 'Quản trị', dem: (c, ns) => (ns.vai_tro === 'quan_tri' ? c.thu_loi : 0) }
+  { to: 'soc', ten: 'Sóc Tia Chớp', ic: Zap, nhom: 'Quản trị', chi: 'quan_tri' },
+  { to: 'he-thong', ten: 'Hệ thống', ic: Settings, dem: (c, ns) => (ns.vai_tro === 'quan_tri' ? c.thu_loi : 0) }
 ]
 const NAV_DUOI = ['', 'lich-quay', 'chien-dich', 'thanh-vien']
 
@@ -112,7 +114,14 @@ function Khung({ ns, children }) {
     if (!window.__nsQtCho || t - window.__nsQtCho > 45000) { window.__nsQtCho = t; taiCho() }
   }, [loc.pathname, taiCho])
   useEffect(() => { setMoMenu(false) }, [loc.pathname])
-  const muc = MUC
+  // Mục chỉ dành cho một vai trò; khi ẩn thì nhãn nhóm chuyển sang mục kế tiếp
+  const muc = []
+  let nhomCho = null
+  for (const m of MUC) {
+    if (m.chi && m.chi !== ns.vai_tro) { nhomCho = nhomCho || m.nhom; continue }
+    muc.push(nhomCho && !m.nhom ? { ...m, nhom: nhomCho } : m)
+    nhomCho = null
+  }
   const den = (m) => '/quantri' + (m.to ? '/' + m.to : '')
   const soDem = (m) => (m.dem ? m.dem(cho, ns) || 0 : 0)
   const hienTai = MUC.find((m) => (m.to ? loc.pathname.startsWith('/quantri/' + m.to) : loc.pathname === '/quantri' || loc.pathname === '/quantri/'))
@@ -223,6 +232,7 @@ export default function CongQuanTri() {
         <Route path="thong-bao" element={<ThongBao />} />
         <Route path="ho-tro" element={<HoTro />} />
         <Route path="he-thong" element={<HeThong />} />
+        {ns.vai_tro === 'quan_tri' && <Route path="soc" element={<Soc />} />}
         <Route path="*" element={<Navigate to="/quantri" replace />} />
       </Routes>
     </Khung>
